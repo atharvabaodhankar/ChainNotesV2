@@ -1,111 +1,190 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/* ─── index.css ─────────────────────────────────────────────────────────── */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/* 1. Import Tailwind v4 */
+@import "tailwindcss";
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* 2. Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+/* 3. Source paths — tells v4 which files to scan for class names */
+@source "../src/**/*.{js,jsx,ts,tsx,html}";
+
+/* 4. Dark mode variant */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 5. Design tokens — everything in one @theme block */
+@theme {
+
+  /* ── Fonts ─────────────────────────────────────────── */
+  --font-headline: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body:     "Inter", system-ui, sans-serif;
+  --font-label:    "Inter", system-ui, sans-serif;
+
+  /* ── Border Radius ─────────────────────────────────── */
+  --radius-sm:   0.5rem;
+  --radius:      1rem;
+  --radius-lg:   2rem;
+  --radius-xl:   3rem;
+  --radius-full: 9999px;
+
+  /* ── Shadows ───────────────────────────────────────── */
+  --shadow-primary:   0 12px 24px rgba(255,141,138,0.25);
+  --shadow-secondary: 0 10px 20px rgba(168,140,251,0.20);
+  --shadow-tertiary:  0 10px 20px rgba(255,121,75,0.20);
+  --shadow-error:     0 0 40px rgba(213,61,24,0.40);
+  --shadow-sos:       0 0 50px rgba(255,141,138,0.40);
+
+  /* ── Keyframes & Animations ────────────────────────── */
+  --animate-float:   float 3s ease-in-out infinite;
+  --animate-reveal:  fadeSlideUp 400ms ease-out forwards;
+  --animate-fade-in: fadeIn 300ms ease-out forwards;
+
+  /* ── Neutral Surfaces ──────────────────────────────── */
+  --color-surface-dim:               #0e0e13;
+  --color-surface:                   #0e0e13;
+  --color-surface-container-low:     #131319;
+  --color-surface-container:         #19191f;
+  --color-surface-container-high:    #1f1f26;
+  --color-surface-container-highest: #25252d;
+  --color-surface-bright:            #2c2b33;
+  --color-background:                #0e0e13;
+  --color-on-surface:                #f9f5fd;
+  --color-on-background:             #f9f5fd;
+  --color-on-surface-variant:        #acaab1;
+  --color-outline:                   #76747b;
+  --color-outline-variant:           #48474d;
+
+  /* ── Primary ───────────────────────────────────────── */
+  --color-primary:                   #ff8d8a;
+  --color-primary-dim:               #ff706f;
+  --color-primary-fixed:             #ff7574;
+  --color-primary-fixed-dim:         #f56364;
+  --color-primary-container:         #ff7574;
+  --color-on-primary:                #64000e;
+  --color-on-primary-fixed:          #000000;
+  --color-on-primary-container:      #4e0009;
+  --color-on-primary-fixed-variant:  #60000d;
+  --color-surface-tint:              #ff8d8a;
+
+  /* ── Secondary ─────────────────────────────────────── */
+  --color-secondary:                  #a88cfb;
+  --color-secondary-dim:              #a88cfb;
+  --color-secondary-fixed:            #d8caff;
+  --color-secondary-fixed-dim:        #ccbaff;
+  --color-secondary-container:        #4f319c;
+  --color-on-secondary:               #260069;
+  --color-on-secondary-fixed:         #3c1989;
+  --color-on-secondary-container:     #d7c8ff;
+  --color-on-secondary-fixed-variant: #593ca6;
+
+  /* ── Tertiary ──────────────────────────────────────── */
+  --color-tertiary:                   #ff794b;
+  --color-tertiary-dim:               #ff7344;
+  --color-tertiary-fixed:             #ff9471;
+  --color-tertiary-fixed-dim:         #ff7d52;
+  --color-tertiary-container:         #fa622c;
+  --color-on-tertiary:                #461000;
+  --color-on-tertiary-fixed:          #330900;
+  --color-on-tertiary-container:      #2b0700;
+  --color-on-tertiary-fixed-variant:  #6d1d00;
+
+  /* ── Error ─────────────────────────────────────────── */
+  --color-error:                      #ff7351;
+  --color-error-dim:                  #d53d18;
+  --color-error-container:            #b92902;
+  --color-on-error:                   #450900;
+  --color-on-error-container:         #ffd2c8;
+
+  /* ── Inverse ───────────────────────────────────────── */
+  --color-inverse-surface:            #fcf8ff;
+  --color-inverse-on-surface:         #55545b;
+  --color-inverse-primary:            #ae3035;
+}
+
+/* 6. Keyframe definitions */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 7. Plugin */
+@plugin "@tailwindcss/forms";
+
+/* 8. Base layer — global resets */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+  }
+  html { background-color: #0e0e13; }
+  body {
+    font-family: var(--font-body);
+    color: #f9f5fd;
+    min-height: 100dvh;
+    margin: 0;
+  }
+  #root {
+    width: 100%;
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: rgba(255, 141, 138, 0.3);
+    color: #f9f5fd;
+  }
+  ::-webkit-scrollbar { width: 0; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+/* 9. Component layer — reusable class utilities */
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
-}
-
-body {
-  margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  .glass-elevated {
+    background: rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+  .signature-gradient {
+    background: linear-gradient(135deg, #ff8d8a 0%, #ff794b 100%);
   }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  .lavender-gradient {
+    background: linear-gradient(135deg, #a88cfb 0%, #d8caff 100%);
+  }
+  .btn-primary {
+    @apply w-full py-5 rounded-full font-headline font-bold text-lg
+           text-on-primary-fixed bg-gradient-to-br from-primary to-tertiary
+           shadow-primary active:scale-95 hover:opacity-90
+           transition-all duration-200 border-none cursor-pointer;
+  }
+  .section-label {
+    @apply font-label text-[10px] font-extrabold tracking-[0.2em]
+           text-on-surface-variant uppercase;
+  }
+  .page-container {
+    @apply max-w-lg mx-auto w-full px-6;
+  }
 }
