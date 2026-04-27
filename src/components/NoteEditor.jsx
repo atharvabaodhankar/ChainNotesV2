@@ -47,31 +47,29 @@ export default function NoteEditor({ note, onSave, onClose, isSaving, saveSteps 
       <div className="fixed bottom-[10%] -right-24 w-96 h-96 bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse" />
 
       {/* Top Header Actions */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
-        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-xl">arrow_back</span>
-          </button>
+      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] px-6 py-4 flex items-center justify-between">
+        <button
+          onClick={onClose}
+          disabled={isSaving}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95 disabled:opacity-50"
+        >
+          <span className="material-symbols-outlined text-xl">arrow_back</span>
+        </button>
 
-          <h3 className="font-headline font-bold text-on-surface text-base">
-            {note ? "Edit Secure Note" : "New Secure Note"}
-          </h3>
+        <h3 className="font-headline font-bold text-on-surface text-base">
+          {note ? "Edit Secure Note" : "New Secure Note"}
+        </h3>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving || (!title.trim() && !content.trim())}
-            className="px-6 h-10 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-          >
-            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-              security
-            </span>
-            <span>Save Securely</span>
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={isSaving || (!title.trim() && !content.trim())}
+          className="px-6 h-10 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+        >
+          <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
+            security
+          </span>
+          <span>Save Securely</span>
+        </button>
       </header>
 
       {/* Main Content Workspace */}
@@ -149,89 +147,47 @@ export default function NoteEditor({ note, onSave, onClose, isSaving, saveSteps 
       </main>
 
       {/* Multi-stage Transaction Steps Sheet */}
-      {isSaving && (() => {
-        const isSuccess = saveSteps && saveSteps.startsWith("SUCCESS:");
-        const txHash = isSuccess ? saveSteps.split(":")[1] : "";
+      {isSaving && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-end justify-center">
+          <div className="w-full max-w-lg glass-elevated rounded-t-3xl p-8 border-t border-white/10 animate-reveal">
+            
+            {/* Drag Handle */}
+            <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
 
-        return (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-end justify-center">
-            <div className="w-full max-w-lg glass-elevated rounded-t-3xl p-8 border-t border-white/10 animate-reveal">
-              
-              {/* Drag Handle */}
-              <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
+            <div className="flex flex-col items-center text-center space-y-6">
+              {/* Spinner */}
+              <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin relative flex items-center justify-center shadow-primary">
+                <span className="material-symbols-outlined text-xl text-primary animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  security
+                </span>
+              </div>
 
-              <div className="flex flex-col items-center text-center space-y-6">
-                {/* Visual indicator (Spinner or Success Checkmark) */}
-                {isSuccess ? (
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 border-4 border-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-reveal">
-                    <span className="material-symbols-outlined text-3xl text-emerald-500 font-bold">
-                      check
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin relative flex items-center justify-center shadow-primary">
-                    <span className="material-symbols-outlined text-xl text-primary animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      security
-                    </span>
-                  </div>
-                )}
+              <div>
+                <h3 className="font-headline font-bold text-on-surface text-lg">
+                  Securing Note State
+                </h3>
+                <p className="font-body text-xs text-on-surface-variant max-w-[280px] mx-auto mt-2">
+                  Account Abstraction handles sponsored transactions gaslessly in the background.
+                </p>
+              </div>
 
-                <div>
-                  <h3 className="font-headline font-bold text-on-surface text-lg">
-                    {isSuccess ? "Note Secured On-Chain!" : "Securing Note State"}
-                  </h3>
-                  <p className="font-body text-xs text-on-surface-variant max-w-[280px] mx-auto mt-2">
-                    {isSuccess 
-                      ? "Your note is fully encrypted, uploaded to IPFS, and anchored to the blockchain." 
-                      : "Account Abstraction handles sponsored transactions gaslessly in the background."}
-                  </p>
-                </div>
+              {/* Step Logs */}
+              <div className="w-full glass-subtle rounded-xl p-4 border border-white/[0.04]">
+                <p className="font-body text-xs text-secondary font-medium animate-pulse">
+                  {saveSteps || "Preparing UserOperation..."}
+                </p>
+              </div>
 
-                {/* Step Logs */}
-                <div className="w-full glass-subtle rounded-xl p-4 border border-white/[0.04]">
-                  <p className={`font-body text-xs font-medium ${isSuccess ? 'text-emerald-400' : 'text-secondary animate-pulse'}`}>
-                    {isSuccess ? "Decentralized metadata pinned successfully." : saveSteps || "Preparing UserOperation..."}
-                  </p>
-                </div>
-
-                {/* Dynamic Actions: Progress Logs or Verification Links */}
-                {isSuccess ? (
-                  <div className="w-full space-y-3">
-                    <a
-                      href={txHash.startsWith("0xMock") ? "#" : `https://amoy.polygonscan.com/tx/${txHash}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 font-headline font-bold text-xs text-primary transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
-                      onClick={(e) => {
-                        if (txHash.startsWith("0xMock")) {
-                          e.preventDefault();
-                          alert("This is a simulated transaction in sandboxed dev mode. In a live environment, this links directly to the Polygon Amoy block explorer!");
-                        }
-                      }}
-                    >
-                      <span className="material-symbols-outlined text-sm">open_in_new</span>
-                      <span>{txHash.startsWith("0xMock") ? "View Simulated Transaction" : "Verify on PolygonScan"}</span>
-                    </a>
-                    
-                    <button
-                      onClick={onClose}
-                      className="py-3 w-full rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline font-bold text-xs text-on-surface transition-all duration-200 cursor-pointer active:scale-[0.98]"
-                    >
-                      Go to Dashboard
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-full flex items-center gap-1">
-                    <div className="h-1 flex-1 bg-primary rounded-full animate-pulse" />
-                    <div className="h-1 flex-1 bg-secondary rounded-full animate-pulse" style={{ animationDelay: '100ms' }} />
-                    <div className="h-1 flex-1 bg-tertiary rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-                  </div>
-                )}
+              {/* Progress Logs */}
+              <div className="w-full flex items-center gap-1">
+                <div className="h-1 flex-1 bg-primary rounded-full animate-pulse" />
+                <div className="h-1 flex-1 bg-secondary rounded-full animate-pulse" style={{ animationDelay: '100ms' }} />
+                <div className="h-1 flex-1 bg-tertiary rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
               </div>
             </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 }
