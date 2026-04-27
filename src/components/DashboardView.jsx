@@ -6,14 +6,10 @@ export default function DashboardView({
   loadingNotes, 
   userAddress, 
   smartAccountAddress, 
-  isMock,
   onLogout, 
   onSelectNote, 
   onCreateNew, 
-  onViewProfile,
-  hasEmbeddedWallet,
-  onCreateWallet,
-  isCreatingWallet
+  onViewProfile 
 }) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -39,37 +35,32 @@ export default function DashboardView({
       <div className="fixed bottom-0 left-0 w-80 h-80 bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse" />
 
       {/* Floating Header */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
-        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
-          <div onClick={onViewProfile} className="cursor-pointer flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full signature-gradient flex items-center justify-center font-headline font-bold text-on-primary-fixed shadow-secondary">
-              {smartAccountAddress ? smartAccountAddress.substring(2, 4).toUpperCase() : "AA"}
-            </div>
-            <div>
-              <h3 className="font-headline font-bold text-on-surface text-sm flex items-center gap-1.5">
-                <span>My Account</span>
-                <span className="flex h-2 w-2 relative">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isMock ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isMock ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
-                </span>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isMock ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'}`}>
-                  {isMock ? 'Sandbox' : 'Polygon Amoy'}
-                </span>
-              </h3>
-              <p className="font-body text-[11px] text-on-surface-variant">
-                Smart Account: {truncateAddr(smartAccountAddress)}
-              </p>
-            </div>
+      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3" onClick={onViewProfile} className="cursor-pointer flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full signature-gradient flex items-center justify-center font-headline font-bold text-on-primary-fixed shadow-secondary">
+            {smartAccountAddress ? smartAccountAddress.substring(2, 4).toUpperCase() : "AA"}
           </div>
-
-          <button 
-            onClick={onLogout}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-primary transition-all duration-200 cursor-pointer active:scale-95"
-            title="Sign Out"
-          >
-            <span className="material-symbols-outlined text-xl">logout</span>
-          </button>
+          <div>
+            <h3 className="font-headline font-bold text-on-surface text-sm flex items-center gap-1.5">
+              <span>My Account</span>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+            </h3>
+            <p className="font-body text-[11px] text-on-surface-variant">
+              Smart Account: {truncateAddr(smartAccountAddress)}
+            </p>
+          </div>
         </div>
+
+        <button 
+          onClick={onLogout}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-primary transition-all duration-200 cursor-pointer active:scale-95"
+          title="Sign Out"
+        >
+          <span className="material-symbols-outlined text-xl">logout</span>
+        </button>
       </header>
 
       {/* Main Content Area */}
@@ -106,59 +97,6 @@ export default function DashboardView({
               <div key={n} className="animate-pulse glass-card border border-white/[0.05] rounded-xl p-5 h-24" />
             ))}
           </div>
-        ) : !smartAccountAddress ? (
-          /* Generate Secure Keyset or Session Sync required */
-          hasEmbeddedWallet ? (
-            /* Sync Session Fallback */
-            <div className="glass-card rounded-2xl border border-white/[0.05] p-10 text-center flex flex-col items-center justify-center space-y-6 mt-8 animate-reveal">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                <span className="material-symbols-outlined text-3xl">sync_problem</span>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-headline font-bold text-on-surface text-lg">Account Sync Required</h3>
-                <p className="font-body text-xs text-on-surface-variant max-w-[320px] mx-auto leading-relaxed">
-                  We detected a secure wallet linked to your profile, but the active session needs to be synced. This usually occurs after switching from sandbox/mock environment to live network.
-                </p>
-              </div>
-              <button
-                onClick={onLogout}
-                className="px-8 py-3.5 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-sm">logout</span>
-                <span>Sync & Refresh Session</span>
-              </button>
-            </div>
-          ) : (
-            /* Create Embedded Wallet */
-            <div className="glass-card rounded-2xl border border-white/[0.05] p-10 text-center flex flex-col items-center justify-center space-y-6 mt-8 animate-reveal">
-              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-3xl">key</span>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-headline font-bold text-on-surface text-lg">Generate Secure Blockchain Keyset</h3>
-                <p className="font-body text-xs text-on-surface-variant max-w-[320px] mx-auto leading-relaxed">
-                  To store notes securely on-chain and perform gasless, sponsored actions, we need to generate a secure cryptographic keyset for your account. This takes 1-click and is 100% gasless.
-                </p>
-              </div>
-              <button
-                onClick={onCreateWallet}
-                disabled={isCreatingWallet}
-                className="px-8 py-3.5 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCreatingWallet ? (
-                  <>
-                    <div className="w-4 h-4 rounded-full border-2 border-on-primary-fixed/20 border-t-on-primary-fixed animate-spin" />
-                    <span>Generating Keys...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm">vpn_key</span>
-                    <span>Generate Secure Keys</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )
         ) : filteredNotes.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 animate-reveal">
             {filteredNotes.map((note, index) => {
@@ -236,15 +174,13 @@ export default function DashboardView({
       </main>
 
       {/* Floating Action Button (FAB) */}
-      {smartAccountAddress && (
-        <button
-          onClick={onCreateNew}
-          className="fixed bottom-8 right-6 w-14 h-14 rounded-full signature-gradient shadow-primary flex items-center justify-center text-on-primary-fixed border-none cursor-pointer hover:opacity-90 active:scale-90 transition-all duration-200 z-30"
-          title="Create Note"
-        >
-          <span className="material-symbols-outlined text-2xl font-bold">add</span>
-        </button>
-      )}
+      <button
+        onClick={onCreateNew}
+        className="fixed bottom-8 right-6 w-14 h-14 rounded-full signature-gradient shadow-primary flex items-center justify-center text-on-primary-fixed border-none cursor-pointer hover:opacity-90 active:scale-90 transition-all duration-200 z-30"
+        title="Create Note"
+      >
+        <span className="material-symbols-outlined text-2xl font-bold">add</span>
+      </button>
     </div>
   );
 }
