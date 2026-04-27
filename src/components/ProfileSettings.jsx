@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 export default function ProfileSettings({ 
   userAddress, 
   smartAccountAddress, 
-  isMock,
   onClose 
 }) {
   const [copiedEOA, setCopiedEOA] = useState(false);
@@ -32,21 +31,19 @@ export default function ProfileSettings({
       <div className="fixed bottom-[-10%] -right-12 w-[350px] h-[350px] bg-primary/5 rounded-full blur-[90px] pointer-events-none -z-10 animate-pulse" />
 
       {/* Header */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
-        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
-          <button
-            onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95"
-          >
-            <span className="material-symbols-outlined text-xl">arrow_back</span>
-          </button>
+      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] px-6 py-4 flex items-center justify-between">
+        <button
+          onClick={onClose}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95"
+        >
+          <span className="material-symbols-outlined text-xl">arrow_back</span>
+        </button>
 
-          <h3 className="font-headline font-bold text-on-surface text-base">
-            Web3 Identity Details
-          </h3>
+        <h3 className="font-headline font-bold text-on-surface text-base">
+          Web3 Identity Details
+        </h3>
 
-          <div className="w-10 h-10" /> {/* Spacer */}
-        </div>
+        <div className="w-10 h-10" /> {/* Spacer */}
       </header>
 
       {/* Main Settings Panel */}
@@ -58,16 +55,11 @@ export default function ProfileSettings({
             {smartAccountAddress ? smartAccountAddress.substring(2, 5).toUpperCase() : "AA"}
           </div>
           <div>
-            <h4 className="font-headline font-bold text-on-surface text-lg flex items-center justify-center gap-2">
-              <span>Decentralized Identity</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isMock ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'}`}>
-                {isMock ? 'Sandbox' : 'Polygon Amoy'}
-              </span>
+            <h4 className="font-headline font-bold text-on-surface text-lg">
+              Decentralized Identity
             </h4>
             <p className="font-body text-xs text-on-surface-variant mt-1">
-              {isMock 
-                ? "Your identity is locally simulated in Dev Sandbox because no active wallet provider was detected."
-                : "Your assets and notes are secured on-chain using deterministic Account Abstraction."}
+              Your assets and notes are secured on-chain using deterministic Account Abstraction.
             </p>
           </div>
         </div>
@@ -129,7 +121,7 @@ export default function ProfileSettings({
           </div>
 
           {/* Action Links */}
-          <div className="pt-2 space-y-2.5">
+          <div className="pt-2">
             <a
               href={getExplorerLink(smartAccountAddress)}
               target="_blank"
@@ -137,17 +129,7 @@ export default function ProfileSettings({
               className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline font-bold text-xs text-on-surface transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
             >
               <span className="material-symbols-outlined text-sm">open_in_new</span>
-              <span>View on PolygonScan (Explorer)</span>
-            </a>
-            
-            <a
-              href={`https://jiffyscan.xyz/address/${smartAccountAddress}?network=amoy`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 font-headline font-bold text-xs text-primary transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
-            >
-              <span className="material-symbols-outlined text-sm">explore</span>
-              <span>View UserOperations on JiffyScan</span>
+              <span>View on PolygonScan</span>
             </a>
           </div>
         </div>
