@@ -1,6 +1,12 @@
 // src/utils/pinata.js
 import DOMPurify from 'dompurify';
 
+const PINATA_CONFIG = {
+  apiKey: import.meta.env.VITE_PINATA_API_KEY || "",
+  apiSecret: import.meta.env.VITE_PINATA_API_SECRET || "",
+  jwt: import.meta.env.VITE_PINATA_JWT || "",
+};
+
 const GATEWAY_URL = import.meta.env.VITE_PINATA_GATEWAY_URL || "https://gateway.pinata.cloud";
 const GATEWAY_TOKEN = import.meta.env.VITE_PINATA_GATEWAY_TOKEN || "";
 
@@ -31,96 +37,69 @@ export function validateFile(file) {
   }
 }
 
-// Convert File helper to Base64 to send via serverless JSON request
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      // Extract the raw Base64 data (strip prefix "data:*/*;base64,")
-      const base64Str = reader.result.split(',')[1];
-      resolve(base64Str);
-    };
-    reader.onerror = (error) => reject(error);
-  });
-}
-
-// Upload a file securely via Vercel Serverless Function proxy
+// Upload a file (e.g. image attachments)
 export async function uploadFile(file) {
   validateFile(file);
-
-  try {
-    const base64Data = await fileToBase64(file);
-    
-    const res = await fetch("/api/pinFile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fileData: base64Data,
-        fileName: file.name,
-        mimeType: file.type
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || `Upload failed: ${res.status}`);
-    }
-
-    const data = await res.json();
-    return data.IpfsHash;
-  } catch (error) {
-    console.error("Error in uploadFile proxy:", error);
-    // Graceful fallback during local development if API endpoints are not active yet
-    if (import.meta.env.DEV) {
-      console.warn("Dev mode: Serverless endpoint failed. Using mock IPFS file CID fallback.");
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      return "QmMockedImageCID" + Math.random().toString(36).substring(7);
-    }
-    throw error;
+  
+  // Graceful mockup fallback if no API keys are configured
+  if (!PINATA_CONFIG.apiKey || !PINATA_CONFIG.apiSecret) {
+    console.warn("Pinata API key/secret not configured. Using mock IPFS upload.");
+    await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate delay
+    return "QmMockedImageCID" + Math.random().toString(36).substring(7);
   }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("pinataMetadata", JSON.stringify({
+    name: `chainnotes-asset-${Date.now()}`,
+    keyvalues: { type: "attachment", timestamp: Date.now().toString() },
+  }));
+  formData.append("pinataOptions", JSON.stringify({ cidVersion: 0 }));
+
+  const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+    method: "POST",
+    headers: {
+      pinata_api_key: PINATA_CONFIG.apiKey,
+      pinata_secret_api_key: PINATA_CONFIG.apiSecret,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error(`IPFS file upload failed: ${res.status}`);
+  return (await res.json()).IpfsHash;
 }
 
-// Upload JSON note content metadata securely via Vercel Serverless Function proxy
+// Upload JSON note content metadata
 export async function uploadJSON(data, name = "note") {
-  try {
-    const res = await fetch("/api/pinJSON", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        pinataContent: data,
-        pinataMetadata: { name: `${name}-${Date.now()}` }
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || `JSON upload failed: ${res.status}`);
-    }
-
-    const result = await res.json();
-    return result.IpfsHash;
-  } catch (error) {
-    console.error("Error in uploadJSON proxy:", error);
-    // Graceful fallback during local development if API endpoints are not active yet
-    if (import.meta.env.DEV) {
-      console.warn("Dev mode: Serverless endpoint failed. Using mock IPFS JSON CID fallback.");
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      const mockCID = "QmMockedNoteCID" + Math.random().toString(36).substring(7);
-      
-      // Store in local storage for instant mock retrieval in fallback
-      const mockStore = JSON.parse(localStorage.getItem("chainnotes_mock_ipfs") || "{}");
-      mockStore[mockCID] = JSON.stringify(data);
-      localStorage.setItem("chainnotes_mock_ipfs", JSON.stringify(mockStore));
-      
-      return mockCID;
-    }
-    throw error;
+  // Graceful mockup fallback if no JWT is configured
+  if (!PINATA_CONFIG.jwt) {
+    console.warn("Pinata JWT not configured. Using mock IPFS JSON upload.");
+    await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate delay
+    const mockCID = "QmMockedNoteCID" + Math.random().toString(36).substring(7);
+    
+    // Store in local storage for instant mock retrieval
+    const mockStore = JSON.parse(localStorage.getItem("chainnotes_mock_ipfs") || "{}");
+    mockStore[mockCID] = JSON.stringify(data);
+    localStorage.setItem("chainnotes_mock_ipfs", JSON.stringify(mockStore));
+    
+    return mockCID;
   }
+
+  const res = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${PINATA_CONFIG.jwt}`,
+    },
+    body: JSON.stringify({
+      pinataContent: data,
+      pinataMetadata: { name: `${name}-${Date.now()}` },
+      pinataOptions: { cidVersion: 0 },
+    }),
+  });
+
+  if (!res.ok) throw new Error(`IPFS JSON upload failed: ${res.status}`);
+  return (await res.json()).IpfsHash;
 }
 
 // Complete Note Upload (handles optional image file first)
@@ -174,7 +153,7 @@ export async function fetchFromIPFS(cid) {
 function sanitizeMetadata(raw) {
   if (typeof raw !== "object" || raw === null) return null;
   
-  // Clean text fields to avoid XSS injections from untrusted IPFS CIDs
+  // Use DOMPurify to clean text fields to avoid XSS injections from untrusted IPFS CIDs
   const cleanTitle = typeof raw.title === "string" 
     ? DOMPurify.sanitize(raw.title.slice(0, 100)) 
     : "Untitled Note";
