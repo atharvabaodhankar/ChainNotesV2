@@ -35,32 +35,34 @@ export default function DashboardView({
       <div className="fixed bottom-0 left-0 w-80 h-80 bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse" />
 
       {/* Floating Header */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3" onClick={onViewProfile} className="cursor-pointer flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full signature-gradient flex items-center justify-center font-headline font-bold text-on-primary-fixed shadow-secondary">
-            {smartAccountAddress ? smartAccountAddress.substring(2, 4).toUpperCase() : "AA"}
+      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
+        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
+          <div onClick={onViewProfile} className="cursor-pointer flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full signature-gradient flex items-center justify-center font-headline font-bold text-on-primary-fixed shadow-secondary">
+              {smartAccountAddress ? smartAccountAddress.substring(2, 4).toUpperCase() : "AA"}
+            </div>
+            <div>
+              <h3 className="font-headline font-bold text-on-surface text-sm flex items-center gap-1.5">
+                <span>My Account</span>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+              </h3>
+              <p className="font-body text-[11px] text-on-surface-variant">
+                Smart Account: {truncateAddr(smartAccountAddress)}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-headline font-bold text-on-surface text-sm flex items-center gap-1.5">
-              <span>My Account</span>
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-            </h3>
-            <p className="font-body text-[11px] text-on-surface-variant">
-              Smart Account: {truncateAddr(smartAccountAddress)}
-            </p>
-          </div>
-        </div>
 
-        <button 
-          onClick={onLogout}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-primary transition-all duration-200 cursor-pointer active:scale-95"
-          title="Sign Out"
-        >
-          <span className="material-symbols-outlined text-xl">logout</span>
-        </button>
+          <button 
+            onClick={onLogout}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-primary transition-all duration-200 cursor-pointer active:scale-95"
+            title="Sign Out"
+          >
+            <span className="material-symbols-outlined text-xl">logout</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
