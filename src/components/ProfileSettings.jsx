@@ -31,19 +31,21 @@ export default function ProfileSettings({
       <div className="fixed bottom-[-10%] -right-12 w-[350px] h-[350px] bg-primary/5 rounded-full blur-[90px] pointer-events-none -z-10 animate-pulse" />
 
       {/* Header */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] px-6 py-4 flex items-center justify-between">
-        <button
-          onClick={onClose}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95"
-        >
-          <span className="material-symbols-outlined text-xl">arrow_back</span>
-        </button>
+      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
+        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95"
+          >
+            <span className="material-symbols-outlined text-xl">arrow_back</span>
+          </button>
 
-        <h3 className="font-headline font-bold text-on-surface text-base">
-          Web3 Identity Details
-        </h3>
+          <h3 className="font-headline font-bold text-on-surface text-base">
+            Web3 Identity Details
+          </h3>
 
-        <div className="w-10 h-10" /> {/* Spacer */}
+          <div className="w-10 h-10" /> {/* Spacer */}
+        </div>
       </header>
 
       {/* Main Settings Panel */}
