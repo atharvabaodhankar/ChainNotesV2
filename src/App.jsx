@@ -120,20 +120,26 @@ function App() {
       const { metadataCID } = await uploadNoteToIPFS(title, content, imageFile);
 
       // 2. Create the note on-chain gaslessly
-      await smartAccount.createNote(metadataCID, (stepMessage) => {
+      const tx = await smartAccount.createNote(metadataCID, (stepMessage) => {
         setSaveSteps(stepMessage);
       });
 
       // 3. Refresh note feed
       await fetchNotes();
       
-      // Close editor and return to dashboard
-      setSelectedNote(null);
-      setActiveView("dashboard");
+      // If we got a valid transaction hash, show the success verification screen
+      if (tx && tx.hash) {
+        setSaveSteps(`SUCCESS:${tx.hash}`);
+      } else {
+        // Fallback if no transaction hash (should not happen)
+        setSelectedNote(null);
+        setActiveView("dashboard");
+        setIsSaving(false);
+        setSaveSteps("");
+      }
     } catch (err) {
       console.error("Error saving note securely:", err);
       alert("Failed to save note: " + err.message);
-    } finally {
       setIsSaving(false);
       setSaveSteps("");
     }
@@ -183,6 +189,8 @@ function App() {
         onClose={() => {
           setSelectedNote(null);
           setActiveView("dashboard");
+          setIsSaving(false);
+          setSaveSteps("");
         }}
         isSaving={isSaving}
         saveSteps={saveSteps}
