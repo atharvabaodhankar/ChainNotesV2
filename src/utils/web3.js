@@ -44,8 +44,8 @@ export const getPublicClient = () => {
 export const initSmartAccount = async (privyProvider, userAddress) => {
   const chain = getActiveChain();
 
-  // MOCK FALLBACK: If Pimlico Key is missing, build a beautiful local mock Smart Account Client
-  if (!PIMLICO_API_KEY) {
+  // MOCK FALLBACK: If Pimlico Key or Privy signer provider is missing, use simulated client
+  if (!PIMLICO_API_KEY || !privyProvider) {
     console.warn("Pimlico API key not found. Using a robust simulated smart account client.");
     await new Promise((resolve) => setTimeout(resolve, 1200)); // Simulate AA load delay
 
