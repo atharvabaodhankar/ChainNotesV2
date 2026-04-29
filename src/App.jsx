@@ -29,7 +29,7 @@ function App() {
 
   // Initialize Account Abstraction Smart Account Client
   const loadSmartAccount = useCallback(async () => {
-    if (!authenticated || !user?.wallet?.address) return;
+    if (!authenticated) return;
     
     setIsInitializingAccount(true);
     try {
@@ -38,7 +38,15 @@ function App() {
         provider = await embeddedWallet.getEthereumProvider();
       }
       
-      const client = await initSmartAccount(provider, user.wallet.address);
+      // Fallback address if user's real wallet address isn't ready yet
+      const userAddr = user?.wallet?.address || 
+        (user?.id ? `0x${user.id.replace(/[^a-fA-F0-9]/g, '').padEnd(40, '0').substring(0, 40)}` : null);
+      
+      if (!userAddr) {
+        throw new Error("User address not available");
+      }
+      
+      const client = await initSmartAccount(provider, userAddr);
       setSmartAccount(client);
     } catch (err) {
       console.error("Failed to initialize smart account:", err);
@@ -48,11 +56,17 @@ function App() {
   }, [authenticated, user, embeddedWallet]);
 
   // Load smart account once authenticated and wallets are ready
+  // Supports dynamic upgrading: if we had a mock fallback and now have a real embedded wallet, we reload.
   useEffect(() => {
-    if (ready && authenticated && user && wallets.length > 0 && !smartAccount && !isInitializingAccount) {
-      loadSmartAccount();
+    if (ready && authenticated && user && !isInitializingAccount) {
+      const hasRealWallet = !!embeddedWallet && !!user?.wallet?.address;
+      const currentIsMock = !smartAccount || smartAccount.isMock;
+      
+      if (!smartAccount || (currentIsMock && hasRealWallet)) {
+        loadSmartAccount();
+      }
     }
-  }, [ready, authenticated, user, wallets, smartAccount, isInitializingAccount, loadSmartAccount]);
+  }, [ready, authenticated, user, wallets, smartAccount, isInitializingAccount, loadSmartAccount, embeddedWallet]);
 
   // Fetch Notes CIDs from smart contract, and retrieve details from IPFS
   const fetchNotes = useCallback(async () => {
@@ -93,7 +107,10 @@ function App() {
 
   // Handle Note Save (Uploads metadata to IPFS, triggers sponsored contract write)
   const handleSaveNote = async (title, content, imageFile) => {
-    if (!smartAccount) return;
+    if (!smartAccount) {
+      alert("Smart Account is still initializing. Please wait a moment and try again.");
+      return;
+    }
 
     setIsSaving(true);
     setSaveSteps("Uploading note details to decentralized IPFS...");
