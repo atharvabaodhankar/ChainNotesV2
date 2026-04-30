@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { usePrivy, useWallets, useCreateWallet, getEmbeddedConnectedWallet, toViemAccount } from '@privy-io/react-auth';
 import { initSmartAccount } from './utils/web3';
 import { uploadNoteToIPFS, fetchNoteMetadata } from './utils/pinata';
 
@@ -11,8 +11,9 @@ import NoteEditor from './components/NoteEditor';
 import ProfileSettings from './components/ProfileSettings';
 
 function App() {
-  const { login, logout, authenticated, user, ready } = usePrivy();
-  const { wallets } = useWallets();
+  const { login, logout, authenticated, user, ready: privyReady } = usePrivy();
+  const { wallets, ready: walletsReady } = useWallets();
+  const { createWallet } = useCreateWallet();
 
   // Local App State
   const [smartAccount, setSmartAccount] = useState(null);
@@ -23,9 +24,7 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSteps, setSaveSteps] = useState("");
   const [isInitializingAccount, setIsInitializingAccount] = useState(false);
-
-  // Get active connected wallet (embedded or external, e.g. MetaMask)
-  const activeWallet = wallets?.[0];
+  const [isCreatingWallet, setIsCreatingWallet] = useState(false);
 
   // Initialize Account Abstraction Smart Account Client
   const loadSmartAccount = useCallback(async () => {
@@ -33,40 +32,74 @@ function App() {
     
     setIsInitializingAccount(true);
     try {
-      let provider = null;
-      if (activeWallet) {
-        provider = await activeWallet.getEthereumProvider();
+      // Find the Privy embedded wallet from the connected wallets array, or fallback to any EOA wallet
+      let activeWallet = getEmbeddedConnectedWallet(wallets);
+      
+      console.log('[ChainNotes] walletsReady:', walletsReady);
+      console.log('[ChainNotes] All wallets:', wallets?.map(w => ({ type: w.walletClientType, addr: w.address })));
+      console.log('[ChainNotes] Embedded wallet:', activeWallet ? { type: activeWallet.walletClientType, addr: activeWallet.address } : 'NOT FOUND');
+      
+      if (!activeWallet && wallets && wallets.length > 0) {
+        activeWallet = wallets[0];
+        console.log('[ChainNotes] Fallback EOA wallet being used:', activeWallet.address);
       }
-      
-      // Fallback address if user's real wallet address isn't ready yet
-      const userAddr = activeWallet?.address || user?.wallet?.address || 
-        (user?.id ? `0x${user.id.replace(/[^a-fA-F0-9]/g, '').padEnd(40, '0').substring(0, 40)}` : null);
-      
-      if (!userAddr) {
-        throw new Error("User address not available");
+
+      if (!activeWallet) {
+        console.warn('[ChainNotes] No wallet signer (embedded or EOA) available in wallets list yet');
+        setIsInitializingAccount(false);
+        return;
       }
+
+      // Use Privy's toViemAccount to get a proper viem Account signer
+      const viemAccount = await toViemAccount({ wallet: activeWallet });
+      const userAddr = activeWallet.address;
       
-      const client = await initSmartAccount(provider, userAddr);
+      console.log('[ChainNotes] Got viem account from Privy wallet signer:', userAddr);
+      
+      const client = await initSmartAccount(viemAccount, userAddr);
+      console.log('[ChainNotes] Smart account initialized:', { isMock: client.isMock, address: client.address });
       setSmartAccount(client);
     } catch (err) {
       console.error("Failed to initialize smart account:", err);
     } finally {
       setIsInitializingAccount(false);
     }
-  }, [authenticated, user, activeWallet]);
+  }, [authenticated, wallets, walletsReady]);
 
-  // Load smart account once authenticated and wallets are ready
-  // Supports dynamic upgrading: if we had a mock fallback and now have a real embedded/external wallet, we reload.
+  // Load smart account once wallets are ready and any connected wallet is available
   useEffect(() => {
-    if (ready && authenticated && user && !isInitializingAccount) {
-      const hasRealWallet = !!activeWallet && (!!activeWallet.address || !!user?.wallet?.address);
-      const currentIsMock = !smartAccount || smartAccount.isMock;
-      
-      if (!smartAccount || (currentIsMock && hasRealWallet)) {
-        loadSmartAccount();
-      }
+    if (!privyReady || !walletsReady || !authenticated || !user || isInitializingAccount) return;
+    
+    const activeWallet = getEmbeddedConnectedWallet(wallets) || (wallets && wallets[0]);
+    const currentIsMock = !smartAccount || smartAccount.isMock;
+    
+    console.log('[ChainNotes] useEffect check — walletsReady:', walletsReady, 'activeWallet:', !!activeWallet, 'currentIsMock:', currentIsMock);
+    
+    // Initialize when we have a connected wallet and either no smart account or upgrading from mock
+    if (activeWallet && (!smartAccount || currentIsMock)) {
+      console.log('[ChainNotes] Connected wallet ready, initializing real smart account...');
+      loadSmartAccount();
     }
-  }, [ready, authenticated, user, wallets, smartAccount, isInitializingAccount, loadSmartAccount, activeWallet]);
+  }, [privyReady, walletsReady, authenticated, user, wallets, smartAccount, isInitializingAccount, loadSmartAccount]);
+
+  // Dynamic wallet creation handler
+  const handleCreateWallet = async () => {
+    setIsCreatingWallet(true);
+    try {
+      const newWallet = await createWallet();
+      console.log("[ChainNotes] Secure embedded wallet created successfully:", newWallet.address);
+    } catch (err) {
+      console.error("[ChainNotes] Failed to create secure embedded wallet:", err);
+      alert("Keyset creation failed: " + err.message);
+    } finally {
+      setIsCreatingWallet(false);
+    }
+  };
+
+  // Helper to determine if user has a linked embedded wallet in their profile
+  const hasEmbeddedWallet = !!user?.linkedAccounts?.some(
+    (acc) => acc.type === 'wallet' && acc.connectorType === 'embedded'
+  ) || !!user?.wallet;
 
   // Fetch Notes CIDs from smart contract, and retrieve details from IPFS
   const fetchNotes = useCallback(async () => {
@@ -152,13 +185,13 @@ function App() {
     await logout();
   };
 
-  // Render Loading state while Privy initializes
-  if (!ready || (authenticated && isInitializingAccount && !smartAccount)) {
+  // Render Loading state while Privy or wallets are initializing
+  if (!privyReady || !walletsReady || (authenticated && isInitializingAccount && !smartAccount)) {
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center space-y-6">
         <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin shadow-primary" />
         <h3 className="font-headline font-bold text-on-surface text-base animate-pulse">
-          Initializing Web3 Signer...
+          {!privyReady ? 'Connecting to Privy...' : !walletsReady ? 'Loading Embedded Wallet...' : 'Initializing Web3 Signer...'}
         </h3>
       </div>
     );
@@ -166,7 +199,7 @@ function App() {
 
   // Onboarding / Login View
   if (!authenticated) {
-    return <OnboardingView onLogin={login} isLoggingIn={!ready} />;
+    return <OnboardingView onLogin={login} isLoggingIn={!privyReady} />;
   }
 
   // Profile Settings View
@@ -217,6 +250,9 @@ function App() {
         setActiveView("editor");
       }}
       onViewProfile={() => setActiveView("profile")}
+      hasEmbeddedWallet={hasEmbeddedWallet}
+      onCreateWallet={handleCreateWallet}
+      isCreatingWallet={isCreatingWallet}
     />
   );
 }
