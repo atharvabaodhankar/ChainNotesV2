@@ -123,7 +123,7 @@ export default function ProfileSettings({
           </div>
 
           {/* Action Links */}
-          <div className="pt-2">
+          <div className="pt-2 space-y-2.5">
             <a
               href={getExplorerLink(smartAccountAddress)}
               target="_blank"
@@ -131,7 +131,17 @@ export default function ProfileSettings({
               className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline font-bold text-xs text-on-surface transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
             >
               <span className="material-symbols-outlined text-sm">open_in_new</span>
-              <span>View on PolygonScan</span>
+              <span>View on PolygonScan (Explorer)</span>
+            </a>
+            
+            <a
+              href={`https://jiffyscan.xyz/address/${smartAccountAddress}?network=amoy`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 font-headline font-bold text-xs text-primary transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
+            >
+              <span className="material-symbols-outlined text-sm">explore</span>
+              <span>View UserOperations on JiffyScan</span>
             </a>
           </div>
         </div>
