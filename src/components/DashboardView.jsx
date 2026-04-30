@@ -6,6 +6,7 @@ export default function DashboardView({
   loadingNotes, 
   userAddress, 
   smartAccountAddress, 
+  isMock,
   onLogout, 
   onSelectNote, 
   onCreateNew, 
@@ -45,8 +46,11 @@ export default function DashboardView({
               <h3 className="font-headline font-bold text-on-surface text-sm flex items-center gap-1.5">
                 <span>My Account</span>
                 <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isMock ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isMock ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isMock ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'}`}>
+                  {isMock ? 'Sandbox' : 'Polygon Amoy'}
                 </span>
               </h3>
               <p className="font-body text-[11px] text-on-surface-variant">

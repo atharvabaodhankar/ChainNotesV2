@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 export default function ProfileSettings({ 
   userAddress, 
   smartAccountAddress, 
+  isMock,
   onClose 
 }) {
   const [copiedEOA, setCopiedEOA] = useState(false);
@@ -57,11 +58,16 @@ export default function ProfileSettings({
             {smartAccountAddress ? smartAccountAddress.substring(2, 5).toUpperCase() : "AA"}
           </div>
           <div>
-            <h4 className="font-headline font-bold text-on-surface text-lg">
-              Decentralized Identity
+            <h4 className="font-headline font-bold text-on-surface text-lg flex items-center justify-center gap-2">
+              <span>Decentralized Identity</span>
+              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isMock ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'}`}>
+                {isMock ? 'Sandbox' : 'Polygon Amoy'}
+              </span>
             </h4>
             <p className="font-body text-xs text-on-surface-variant mt-1">
-              Your assets and notes are secured on-chain using deterministic Account Abstraction.
+              {isMock 
+                ? "Your identity is locally simulated in Dev Sandbox because no active wallet provider was detected."
+                : "Your assets and notes are secured on-chain using deterministic Account Abstraction."}
             </p>
           </div>
         </div>

@@ -24,8 +24,8 @@ function App() {
   const [saveSteps, setSaveSteps] = useState("");
   const [isInitializingAccount, setIsInitializingAccount] = useState(false);
 
-  // Get active Privy embedded wallet
-  const embeddedWallet = wallets?.find((w) => w.walletClientType === 'privy');
+  // Get active connected wallet (embedded or external, e.g. MetaMask)
+  const activeWallet = wallets?.[0];
 
   // Initialize Account Abstraction Smart Account Client
   const loadSmartAccount = useCallback(async () => {
@@ -34,12 +34,12 @@ function App() {
     setIsInitializingAccount(true);
     try {
       let provider = null;
-      if (embeddedWallet) {
-        provider = await embeddedWallet.getEthereumProvider();
+      if (activeWallet) {
+        provider = await activeWallet.getEthereumProvider();
       }
       
       // Fallback address if user's real wallet address isn't ready yet
-      const userAddr = user?.wallet?.address || 
+      const userAddr = activeWallet?.address || user?.wallet?.address || 
         (user?.id ? `0x${user.id.replace(/[^a-fA-F0-9]/g, '').padEnd(40, '0').substring(0, 40)}` : null);
       
       if (!userAddr) {
@@ -53,20 +53,20 @@ function App() {
     } finally {
       setIsInitializingAccount(false);
     }
-  }, [authenticated, user, embeddedWallet]);
+  }, [authenticated, user, activeWallet]);
 
   // Load smart account once authenticated and wallets are ready
-  // Supports dynamic upgrading: if we had a mock fallback and now have a real embedded wallet, we reload.
+  // Supports dynamic upgrading: if we had a mock fallback and now have a real embedded/external wallet, we reload.
   useEffect(() => {
     if (ready && authenticated && user && !isInitializingAccount) {
-      const hasRealWallet = !!embeddedWallet && !!user?.wallet?.address;
+      const hasRealWallet = !!activeWallet && (!!activeWallet.address || !!user?.wallet?.address);
       const currentIsMock = !smartAccount || smartAccount.isMock;
       
       if (!smartAccount || (currentIsMock && hasRealWallet)) {
         loadSmartAccount();
       }
     }
-  }, [ready, authenticated, user, wallets, smartAccount, isInitializingAccount, loadSmartAccount, embeddedWallet]);
+  }, [ready, authenticated, user, wallets, smartAccount, isInitializingAccount, loadSmartAccount, activeWallet]);
 
   // Fetch Notes CIDs from smart contract, and retrieve details from IPFS
   const fetchNotes = useCallback(async () => {
@@ -175,6 +175,7 @@ function App() {
       <ProfileSettings
         userAddress={user?.wallet?.address}
         smartAccountAddress={smartAccount?.address}
+        isMock={smartAccount?.isMock}
         onClose={() => setActiveView("dashboard")}
       />
     );
@@ -205,6 +206,7 @@ function App() {
       loadingNotes={loadingNotes}
       userAddress={user?.wallet?.address}
       smartAccountAddress={smartAccount?.address}
+      isMock={smartAccount?.isMock}
       onLogout={handleLogout}
       onSelectNote={(note) => {
         setSelectedNote(note);
