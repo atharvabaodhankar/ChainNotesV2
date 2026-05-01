@@ -1,5 +1,5 @@
 // src/utils/web3.js
-import { createPublicClient, createWalletClient, custom, http, parseAbi } from 'viem';
+import { createPublicClient, http, parseAbi } from 'viem';
 import { polygonAmoy, localhost } from 'viem/chains';
 import { toSimpleSmartAccount } from 'permissionless/accounts';
 import { createSmartAccountClient } from 'permissionless';
@@ -36,21 +36,20 @@ export const getPublicClient = () => {
 };
 
 /**
- * Initializes the smart account client using Privy embedded wallet provider
- * @param {object} privyProvider EIP-1193 provider from Privy embedded wallet
+ * Initializes the smart account client using Privy embedded wallet's viem Account
+ * @param {object} viemAccount viem Account object from Privy's toViemAccount()
  * @param {string} userAddress The EOA wallet address
  * @returns {Promise<object>} SmartAccountClient or simulated MockClient
  */
-export const initSmartAccount = async (privyProvider, userAddress) => {
+export const initSmartAccount = async (viemAccount, userAddress) => {
   const chain = getActiveChain();
 
-  // MOCK FALLBACK: If Pimlico Key or Privy signer provider is missing, use simulated client
-  if (!PIMLICO_API_KEY || !privyProvider) {
-    console.warn("Pimlico API key not found. Using a robust simulated smart account client.");
+  // MOCK FALLBACK: If Pimlico Key or viem account is missing, use simulated client
+  if (!PIMLICO_API_KEY || !viemAccount) {
+    console.warn("[ChainNotes] Pimlico API key or viem account not found. Using simulated smart account client.");
     await new Promise((resolve) => setTimeout(resolve, 1200)); // Simulate AA load delay
 
     // Generate a deterministic Smart Account Address based on EOA
-    // In actual SimpleAccount, the factory uses index 0 to deploy it deterministically
     const mockSmartAddress = userAddress 
       ? `0xAA${userAddress.substring(4)}` 
       : "0xSmartAccountMockAddress" + Math.random().toString(36).substring(7);
@@ -96,21 +95,16 @@ export const initSmartAccount = async (privyProvider, userAddress) => {
     };
   }
 
-  // REAL FLOW: Initialize Permissionless + Pimlico Paymaster
+  // REAL FLOW: Initialize Permissionless + Pimlico Paymaster using the viem Account directly
   try {
     const publicClient = getPublicClient();
 
-    // Create Wallet Client from EIP-1193 Privy provider
-    const walletClient = createWalletClient({
-      account: userAddress,
-      chain,
-      transport: custom(privyProvider),
-    });
+    console.log("[ChainNotes] Creating SimpleSmartAccount with real viem signer from Privy...");
 
-    // Create Simple Smart Account
+    // Create Simple Smart Account — viemAccount from Privy's toViemAccount() is used directly as owner
     const simpleAccount = await toSimpleSmartAccount({
       client: publicClient,
-      owner: walletClient,
+      owner: viemAccount,
       entryPoint: {
         address: ENTRY_POINT_ADDRESS,
         version: "0.6"
@@ -132,7 +126,63 @@ export const initSmartAccount = async (privyProvider, userAddress) => {
       account: simpleAccount,
       chain,
       bundlerTransport: http(bundlerUrl),
-      paymaster: pimlicoClient,
+      paymaster: {
+        getPaymasterStubData: async (userOperation) => {
+          console.log("[ChainNotes] getPaymasterStubData called with userOp:", userOperation);
+          // Standard 20-byte dummy Paymaster address for stub estimation
+          const paymasterAddress = "0x6666666666666666666666666666666666666666";
+          // ECDSA dummy signature
+          const dummySignature = "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+          
+          const stub = {
+            paymasterAndData: `${paymasterAddress}${dummySignature}`,
+            // Set high safe dummy gas limits to bypass simulation out-of-gas/revert errors
+            verificationGasLimit: 150000n,
+            preVerificationGas: 50000n,
+            callGasLimit: 200000n,
+          };
+          console.log("[ChainNotes] getPaymasterStubData returning stub:", stub);
+          return stub;
+        },
+        getPaymasterData: async (userOperation) => {
+          console.log("[ChainNotes] getPaymasterData called with userOp:", userOperation);
+          // Extract only the standard EntryPoint v0.6 UserOperation fields to prevent Pimlico RPC validation errors
+          const standardUserOp = {
+            sender: userOperation.sender,
+            nonce: userOperation.nonce,
+            initCode: userOperation.initCode,
+            callData: userOperation.callData,
+            callGasLimit: userOperation.callGasLimit,
+            verificationGasLimit: userOperation.verificationGasLimit,
+            preVerificationGas: userOperation.preVerificationGas,
+            maxFeePerGas: userOperation.maxFeePerGas,
+            maxPriorityFeePerGas: userOperation.maxPriorityFeePerGas,
+            paymasterAndData: "0x",
+            signature: userOperation.signature || "0x"
+          };
+          console.log("[ChainNotes] standardUserOp filtered:", standardUserOp);
+
+          const sponsored = await pimlicoClient.sponsorUserOperation({
+            userOperation: standardUserOp
+          });
+          console.log("[ChainNotes] Pimlico sponsored response:", sponsored);
+          return {
+            paymasterAndData: sponsored.paymasterAndData,
+            verificationGasLimit: sponsored.verificationGasLimit,
+            preVerificationGas: sponsored.preVerificationGas,
+            callGasLimit: sponsored.callGasLimit,
+          };
+        }
+      },
+      userOperation: {
+        estimateFeesPerGas: async () => {
+          const fees = await publicClient.estimateFeesPerGas();
+          return {
+            maxFeePerGas: fees.maxFeePerGas,
+            maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
+          };
+        }
+      }
     });
 
     // Decorate the client with custom helpers
