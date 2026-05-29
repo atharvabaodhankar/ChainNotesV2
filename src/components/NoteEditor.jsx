@@ -40,84 +40,147 @@ export default function NoteEditor({ note, onSave, onClose, isSaving, saveSteps 
     onSave(title, content, imageFile);
   };
 
+  // Determine vertical checklist state from saveSteps
+  const getStepStatus = (stepName) => {
+    const isSuccess = saveSteps && saveSteps.startsWith("SUCCESS:");
+    if (isSuccess) return "complete";
+
+    const currentMsg = (saveSteps || "").toLowerCase();
+
+    if (stepName === "ipfs") {
+      if (currentMsg.includes("ipfs")) return "active";
+      if (currentMsg.includes("preparing") || currentMsg.includes("awaiting") || currentMsg.includes("submitting") || currentMsg.includes("validating") || currentMsg.length > 0) return "complete";
+      return "pending";
+    }
+
+    if (stepName === "aa") {
+      if (currentMsg.includes("preparing") || currentMsg.includes("awaiting")) return "active";
+      if (currentMsg.includes("submitting") || currentMsg.includes("validating")) return "complete";
+      return "pending";
+    }
+
+    if (stepName === "pimlico") {
+      if (currentMsg.includes("submitting")) return "active";
+      if (currentMsg.includes("validating")) return "complete";
+      return "pending";
+    }
+
+    if (stepName === "chain") {
+      if (currentMsg.includes("validating")) return "active";
+      return "pending";
+    }
+
+    return "pending";
+  };
+
+  const renderStepIcon = (status) => {
+    if (status === "complete") {
+      return (
+        <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 shadow-2xs z-10">
+          <span className="material-symbols-outlined text-xs font-bold">check</span>
+        </div>
+      );
+    }
+    if (status === "active") {
+      return (
+        <div className="w-5 h-5 rounded-full bg-white border border-zinc-400 flex items-center justify-center shrink-0 z-10">
+          <div className="w-1.5 h-1.5 rounded-full bg-zinc-800 animate-ping" />
+        </div>
+      );
+    }
+    return (
+      <div className="w-5 h-5 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-300 shrink-0 z-10">
+        <div className="w-1 h-1 rounded-full bg-zinc-200" />
+      </div>
+    );
+  };
+
+  const renderStepClass = (status) => {
+    if (status === "complete") return "text-zinc-800 font-semibold";
+    if (status === "active") return "text-zinc-950 font-bold";
+    return "text-zinc-400";
+  };
+
   return (
-    <div className="min-h-screen bg-surface flex flex-col justify-between overflow-x-hidden relative animate-reveal">
-      {/* Background Ambient Blobs */}
-      <div className="fixed top-[15%] -left-24 w-80 h-80 bg-primary/5 rounded-full blur-[90px] pointer-events-none -z-10 animate-pulse" />
-      <div className="fixed bottom-[10%] -right-24 w-96 h-96 bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse" />
-
-      {/* Top Header Actions */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
-        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-xl">arrow_back</span>
-          </button>
-
-          <h3 className="font-headline font-bold text-on-surface text-base">
-            {note ? "Edit Secure Note" : "New Secure Note"}
-          </h3>
+    <div className="min-h-screen bg-white flex flex-col justify-between overflow-x-hidden relative animate-reveal">
+      
+      {/* ── TOP HEADER ACTIONS ─────────────────────────────── */}
+      <header className="sticky top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md border-b border-zinc-200/80 h-14 flex items-center">
+        <div className="max-w-4xl mx-auto w-full px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              disabled={isSaving}
+              className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-zinc-800 transition-colors duration-150 cursor-pointer border-none disabled:opacity-50"
+              title="Cancel edits"
+            >
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </button>
+            <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider font-mono">
+              {note ? "Workspace / Edit Note" : "Workspace / Draft Page"}
+            </span>
+          </div>
 
           <button
             onClick={handleSave}
             disabled={isSaving || (!title.trim() && !content.trim())}
-            className="px-6 h-10 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-semibold shadow-2xs active:scale-[0.98] transition-all duration-150 border-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-              security
-            </span>
-            <span>Save Securely</span>
+            <span className="material-symbols-outlined text-sm">security</span>
+            <span>Anchor Page</span>
           </button>
         </div>
       </header>
 
-      {/* Main Content Workspace */}
-      <main className="flex-1 page-container mt-6 px-6">
+      {/* ── WRITING WORKSPACE BODY ──────────────────────────── */}
+      <main className="flex-1 w-full max-w-2xl mx-auto px-6 py-10 md:py-16 space-y-6">
         {error && (
-          <div className="glass-card rounded-xl border-error/20 bg-error/5 text-error text-xs p-4 mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm">warning</span>
+          <div className="bg-red-50 border border-red-100 text-red-600 rounded-lg p-3 text-xs flex items-center gap-2 animate-pop-in">
+            <span className="material-symbols-outlined text-base">warning</span>
             <span>{error}</span>
           </div>
         )}
 
-        {/* Note Title Input */}
+        {/* Note Title Input (Notion style - completely borderless) */}
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Note Title"
+          placeholder="Untitled"
           disabled={isSaving}
-          className="w-full bg-transparent border-none text-2xl font-headline font-extrabold text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:ring-0 mb-4 px-0"
+          className="w-full bg-transparent border-none text-4xl font-extrabold tracking-tight text-zinc-900 placeholder:text-zinc-200 focus:outline-none focus:ring-0 px-0"
         />
 
-        {/* Note Body Input */}
+        {/* Line divider */}
+        <div className="h-[1px] bg-zinc-100 w-full" />
+
+        {/* Note Body (Line-height relaxed, borderless textarea) */}
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Securely write note details stored off-chain on IPFS..."
+          placeholder="Start writing securely or type '/' for commands..."
           disabled={isSaving}
-          rows={10}
-          className="w-full bg-transparent border-none font-body text-base text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:ring-0 resize-none px-0 leading-relaxed"
+          rows={14}
+          className="w-full bg-transparent border-none font-body text-sm text-zinc-800 placeholder:text-zinc-300 focus:outline-none focus:ring-0 resize-none px-0 leading-relaxed"
         />
 
-        {/* Image Upload Row */}
-        <div className="border-t border-white/[0.05] pt-6 mt-6 pb-12">
+        {/* ── FILE BLOCK ATTACHMENT AREA ────────────────────── */}
+        <div className="border-t border-zinc-150 pt-8 pb-16">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-secondary text-sm">image</span>
-              <span className="section-label">Media Attachment</span>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-zinc-400 text-sm">attach_file</span>
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Media Block</span>
             </div>
             
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isSaving}
-              className="px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 font-label text-[10px] font-extrabold tracking-widest text-on-surface uppercase cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50"
-            >
-              Attach Image
-            </button>
+            {!imagePreview && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSaving}
+                className="px-2.5 py-1 border border-zinc-250 hover:bg-zinc-50 rounded-md font-mono text-[9px] font-extrabold tracking-widest text-zinc-600 uppercase cursor-pointer transition-all duration-150 active:scale-95 disabled:opacity-50"
+              >
+                Add Image
+              </button>
+            )}
             <input
               type="file"
               ref={fileInputRef}
@@ -127,8 +190,9 @@ export default function NoteEditor({ note, onSave, onClose, isSaving, saveSteps 
             />
           </div>
 
-          {imagePreview && (
-            <div className="relative rounded-2xl overflow-hidden glass-card border border-white/10 aspect-video max-w-sm group">
+          {imagePreview ? (
+            /* Uploaded Image Block Card */
+            <div className="relative rounded-lg overflow-hidden border border-zinc-200 max-w-md aspect-video group shadow-2xs">
               <img src={imagePreview} alt="Attachment Preview" className="w-full h-full object-cover" />
               
               {!isSaving && (
@@ -137,97 +201,151 @@ export default function NoteEditor({ note, onSave, onClose, isSaving, saveSteps 
                     setImageFile(null);
                     setImagePreview("");
                   }}
-                  className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 text-white cursor-pointer active:scale-90 transition-transform duration-150 border-none"
+                  className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-md bg-zinc-950/80 hover:bg-zinc-950 text-white cursor-pointer active:scale-90 transition-all duration-150 border-none shadow-sm"
                   title="Remove Asset"
                 >
-                  <span className="material-symbols-outlined text-sm">close</span>
+                  <span className="material-symbols-outlined text-xs">close</span>
                 </button>
               )}
+            </div>
+          ) : (
+            /* Dashed Notion Placeholder Dropzone */
+            <div 
+              onClick={() => !isSaving && fileInputRef.current?.click()}
+              className="border border-dashed border-zinc-200 hover:border-zinc-300 rounded-lg p-5 text-center bg-zinc-50/50 cursor-pointer transition-colors duration-150 flex flex-col items-center justify-center gap-1"
+            >
+              <span className="material-symbols-outlined text-zinc-350 text-lg">add_photo_alternate</span>
+              <span className="text-[11px] text-zinc-400 font-medium">Click to select and anchor an image layout</span>
             </div>
           )}
         </div>
       </main>
 
-      {/* Multi-stage Transaction Steps Sheet */}
+      {/* ── PREMIUM TRANSACTION TIMELINE OVERLAY ───────────── */}
       {isSaving && (() => {
         const isSuccess = saveSteps && saveSteps.startsWith("SUCCESS:");
         const txHash = isSuccess ? saveSteps.split(":")[1] : "";
 
+        // Get status for each vertical pipeline step
+        const ipfsStatus = getStepStatus("ipfs");
+        const aaStatus = getStepStatus("aa");
+        const pimlicoStatus = getStepStatus("pimlico");
+        const chainStatus = getStepStatus("chain");
+
         return (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-end justify-center">
-            <div className="w-full max-w-lg glass-elevated rounded-t-3xl p-8 border-t border-white/10 animate-reveal">
+          <div className="fixed inset-0 z-50 bg-zinc-950/15 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white border border-zinc-200/90 rounded-xl p-6 w-full max-w-sm shadow-xl animate-pop-in space-y-6 flex flex-col relative z-55">
               
-              {/* Drag Handle */}
-              <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
-
-              <div className="flex flex-col items-center text-center space-y-6">
-                {/* Visual indicator (Spinner or Success Checkmark) */}
+              {/* Header Status Flag */}
+              <div className="flex flex-col items-center text-center space-y-4">
                 {isSuccess ? (
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 border-4 border-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-reveal">
-                    <span className="material-symbols-outlined text-3xl text-emerald-500 font-bold">
-                      check
-                    </span>
+                  <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-2xs animate-pop-in">
+                    <span className="material-symbols-outlined text-2xl font-bold">done_all</span>
                   </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin relative flex items-center justify-center shadow-primary">
-                    <span className="material-symbols-outlined text-xl text-primary animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      security
-                    </span>
+                  <div className="w-11 h-11 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-600 shadow-2xs">
+                    <div className="w-4 h-4 rounded-full border-2 border-zinc-300 border-t-zinc-800 animate-spin" />
                   </div>
                 )}
 
-                <div>
-                  <h3 className="font-headline font-bold text-on-surface text-lg">
-                    {isSuccess ? "Note Secured On-Chain!" : "Securing Note State"}
+                <div className="space-y-1">
+                  <h3 className="font-bold text-zinc-900 text-sm">
+                    {isSuccess ? "Page Anchored Successfully" : "Securing Page Payload"}
                   </h3>
-                  <p className="font-body text-xs text-on-surface-variant max-w-[280px] mx-auto mt-2">
+                  <p className="text-[11px] text-zinc-500 max-w-[280px]">
                     {isSuccess 
-                      ? "Your note is fully encrypted, uploaded to IPFS, and anchored to the blockchain." 
-                      : "Account Abstraction handles sponsored transactions gaslessly in the background."}
+                      ? "Your writing metadata is verified, encrypted, and immortalized." 
+                      : "Resolving smart transaction signatures gaslessly in the background."}
                   </p>
                 </div>
-
-                {/* Step Logs */}
-                <div className="w-full glass-subtle rounded-xl p-4 border border-white/[0.04]">
-                  <p className={`font-body text-xs font-medium ${isSuccess ? 'text-emerald-400' : 'text-secondary animate-pulse'}`}>
-                    {isSuccess ? "Decentralized metadata pinned successfully." : saveSteps || "Preparing UserOperation..."}
-                  </p>
-                </div>
-
-                {/* Dynamic Actions: Progress Logs or Verification Links */}
-                {isSuccess ? (
-                  <div className="w-full space-y-3">
-                    <a
-                      href={txHash.startsWith("0xMock") ? "#" : `https://amoy.polygonscan.com/tx/${txHash}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 font-headline font-bold text-xs text-primary transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
-                      onClick={(e) => {
-                        if (txHash.startsWith("0xMock")) {
-                          e.preventDefault();
-                          alert("This is a simulated transaction in sandboxed dev mode. In a live environment, this links directly to the Polygon Amoy block explorer!");
-                        }
-                      }}
-                    >
-                      <span className="material-symbols-outlined text-sm">open_in_new</span>
-                      <span>{txHash.startsWith("0xMock") ? "View Simulated Transaction" : "Verify on PolygonScan"}</span>
-                    </a>
-                    
-                    <button
-                      onClick={onClose}
-                      className="py-3 w-full rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline font-bold text-xs text-on-surface transition-all duration-200 cursor-pointer active:scale-[0.98]"
-                    >
-                      Go to Dashboard
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-full flex items-center gap-1">
-                    <div className="h-1 flex-1 bg-primary rounded-full animate-pulse" />
-                    <div className="h-1 flex-1 bg-secondary rounded-full animate-pulse" style={{ animationDelay: '100ms' }} />
-                    <div className="h-1 flex-1 bg-tertiary rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-                  </div>
-                )}
               </div>
+
+              {/* ── VERTICAL DOT-TIMELINE PIPELINE ──────────────── */}
+              <div className="bg-[#f7f7f8]/50 border border-zinc-200/80 rounded-lg p-4 space-y-4 relative overflow-hidden shadow-2xs">
+                
+                {/* Connecting pipeline line */}
+                <div className="absolute left-[25px] top-[26px] bottom-[26px] w-[1px] bg-zinc-200 -z-0" />
+
+                {/* Step 1: IPFS Upload */}
+                <div className="flex items-start gap-3 relative z-10">
+                  {renderStepIcon(ipfsStatus)}
+                  <div className="space-y-0.5 min-w-0">
+                    <p className={`text-[11px] font-medium leading-none ${renderStepClass(ipfsStatus)}`}>
+                      IPFS Payload Compression
+                    </p>
+                    <p className="text-[9px] text-zinc-400 truncate">
+                      {ipfsStatus === "complete" ? "Pinned metadata JSON to Pinata nodes" : ipfsStatus === "active" ? "Uploading files..." : "Pending IPFS write"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2: AA Preparation */}
+                <div className="flex items-start gap-3 relative z-10">
+                  {renderStepIcon(aaStatus)}
+                  <div className="space-y-0.5 min-w-0">
+                    <p className={`text-[11px] font-medium leading-none ${renderStepClass(aaStatus)}`}>
+                      Account Abstraction Signing
+                    </p>
+                    <p className="text-[9px] text-zinc-400 truncate">
+                      {aaStatus === "complete" ? "UserOperation serialized successfully" : aaStatus === "active" ? "Signing block with embedded key..." : "Pending cryptographic signer"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3: Pimlico Sponsorship */}
+                <div className="flex items-start gap-3 relative z-10">
+                  {renderStepIcon(pimlicoStatus)}
+                  <div className="space-y-0.5 min-w-0">
+                    <p className={`text-[11px] font-medium leading-none ${renderStepClass(pimlicoStatus)}`}>
+                      Gas Sponsorship paymaster
+                    </p>
+                    <p className="text-[9px] text-zinc-400 truncate">
+                      {pimlicoStatus === "complete" ? "Fee coverage authorized gaslessly" : pimlicoStatus === "active" ? "Applying Pimlico sponsorship..." : "Pending paymaster review"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4: Polygon Anchor */}
+                <div className="flex items-start gap-3 relative z-10">
+                  {renderStepIcon(chainStatus)}
+                  <div className="space-y-0.5 min-w-0">
+                    <p className={`text-[11px] font-medium leading-none ${renderStepClass(chainStatus)}`}>
+                      Polygon Verification Loop
+                    </p>
+                    <p className="text-[9px] text-zinc-400 truncate">
+                      {isSuccess ? "Validated on Polygon" : chainStatus === "active" ? "Waiting for block inclusion..." : "Pending block confirmation"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Bottom Controls */}
+              {isSuccess && (
+                <div className="space-y-2">
+                  <a
+                    href={txHash.startsWith("0xMock") ? "#" : `https://amoy.polygonscan.com/tx/${txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-1.5 py-2 w-full border border-zinc-200 hover:bg-zinc-50 font-bold text-xs text-zinc-700 rounded-lg transition-all duration-150 cursor-pointer shadow-2xs hover:border-zinc-300"
+                    onClick={(e) => {
+                      if (txHash.startsWith("0xMock")) {
+                        e.preventDefault();
+                        alert("Simulation Complete. Sandbox dev environment does not deploy to public chains.");
+                      }
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-xs">open_in_new</span>
+                    <span>{txHash.startsWith("0xMock") ? "View Simulated Payload" : "Verify on PolygonScan"}</span>
+                  </a>
+                  
+                  <button
+                    onClick={onClose}
+                    className="py-2.5 w-full bg-zinc-900 hover:bg-zinc-800 font-bold text-xs text-white rounded-lg transition-all duration-150 cursor-pointer border-none shadow-sm hover:shadow"
+                  >
+                    Back to Workspace
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );

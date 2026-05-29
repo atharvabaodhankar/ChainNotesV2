@@ -16,11 +16,19 @@ export default function DashboardView({
   isCreatingWallet
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [copiedText, setCopiedText] = useState("");
 
   // Clean, truncated address for display
   const truncateAddr = (addr) => {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+  };
+
+  const copyToClipboard = (text, type) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(type);
+    setTimeout(() => setCopiedText(""), 1500);
   };
 
   // Filter notes based on title/content search
@@ -33,218 +41,330 @@ export default function DashboardView({
   }, [notes, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-surface relative overflow-x-hidden pb-32">
-      {/* Background Ambient Blobs */}
-      <div className="fixed -top-24 -right-24 w-96 h-96 bg-primary/8 rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse" />
-      <div className="fixed bottom-0 left-0 w-80 h-80 bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse" />
+    <div className="min-h-screen bg-[#fafafa] flex text-zinc-800 font-sans relative overflow-hidden">
+      
+      {/* Mobile Sidebar Overlay Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-zinc-950/20 backdrop-blur-xs z-40 md:hidden transition-opacity duration-300"
+        />
+      )}
 
-      {/* Floating Header */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
-        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
-          <div onClick={onViewProfile} className="cursor-pointer flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full signature-gradient flex items-center justify-center font-headline font-bold text-on-primary-fixed shadow-secondary">
+      {/* ── LEFT SIDEBAR ─────────────────────────────────────── */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#f7f7f8] border-r border-zinc-200 flex flex-col justify-between transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Sidebar Header: Account Profile */}
+        <div className="p-4 border-b border-zinc-200/80">
+          <div 
+            onClick={onViewProfile} 
+            className="flex items-center gap-3 cursor-pointer hover:bg-zinc-200/50 p-2 rounded-lg transition-colors duration-150 group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-95 transition-transform duration-200">
               {smartAccountAddress ? smartAccountAddress.substring(2, 4).toUpperCase() : "AA"}
             </div>
-            <div>
-              <h3 className="font-headline font-bold text-on-surface text-sm flex items-center gap-1.5">
-                <span>My Account</span>
-                <span className="flex h-2 w-2 relative">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-zinc-800 text-xs truncate flex items-center gap-1.5">
+                <span>Personal Space</span>
+                <span className="flex h-1.5 w-1.5 relative">
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isMock ? 'bg-amber-400' : 'bg-emerald-400'} opacity-75`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isMock ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
-                </span>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isMock ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'}`}>
-                  {isMock ? 'Sandbox' : 'Polygon Amoy'}
+                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isMock ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
                 </span>
               </h3>
-              <p className="font-body text-[11px] text-on-surface-variant">
-                Smart Account: {truncateAddr(smartAccountAddress)}
+              <p className="text-[10px] text-zinc-400 font-mono truncate">
+                {truncateAddr(smartAccountAddress || userAddress)}
               </p>
             </div>
+            <span className="material-symbols-outlined text-zinc-400 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              settings
+            </span>
+          </div>
+        </div>
+
+        {/* Sidebar Navigation */}
+        <div className="flex-1 py-4 px-2.5 space-y-1 overflow-y-auto">
+          <div className="px-3 mb-2">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Workspace</span>
+          </div>
+
+          <button 
+            onClick={() => setSearchQuery("")}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-200/50 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer text-left bg-zinc-200/30"
+          >
+            <span className="material-symbols-outlined text-zinc-500 text-base">description</span>
+            <span>All Secured Notes</span>
+            <span className="ml-auto bg-zinc-200/80 text-zinc-600 text-[10px] px-1.5 py-0.5 rounded-md font-bold font-mono">
+              {notes.length}
+            </span>
+          </button>
+
+          <button 
+            onClick={onViewProfile}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-200/50 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer text-left"
+          >
+            <span className="material-symbols-outlined text-zinc-500 text-base">vpn_key</span>
+            <span>Web3 Identity Specs</span>
+          </button>
+
+          <button 
+            onClick={onCreateNew}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-200/50 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer text-left border-none"
+          >
+            <span className="material-symbols-outlined text-zinc-500 text-base">add_circle</span>
+            <span>New Blank Page</span>
+          </button>
+        </div>
+
+        {/* Sidebar Web3 Account Quick Details & Action */}
+        <div className="p-4 border-t border-zinc-200/80 bg-zinc-50/50 space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
+              <span>Security Panel</span>
+              <span className={`px-1.5 py-0.5 rounded text-[8px] tracking-widest ${
+                isMock ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'
+              }`}>
+                {isMock ? 'Sandbox' : 'Amoy'}
+              </span>
+            </div>
+
+            {smartAccountAddress && (
+              <div className="bg-white border border-zinc-200 rounded-lg p-2 flex items-center justify-between text-[11px] font-mono shadow-2xs hover:border-zinc-300 transition-colors duration-150">
+                <div className="min-w-0 flex-1">
+                  <span className="text-zinc-400 block text-[9px] uppercase font-sans font-bold">Smart Wallet</span>
+                  <span className="text-zinc-700 block truncate">{truncateAddr(smartAccountAddress)}</span>
+                </div>
+                <button 
+                  onClick={() => copyToClipboard(smartAccountAddress, 'sa')}
+                  className="p-1 hover:bg-zinc-150 text-zinc-450 hover:text-zinc-800 rounded transition-colors duration-150 border-none cursor-pointer"
+                  title="Copy smart account address"
+                >
+                  <span className="material-symbols-outlined text-xs">
+                    {copiedText === 'sa' ? "check" : "content_copy"}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
 
           <button 
             onClick={onLogout}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-primary transition-all duration-200 cursor-pointer active:scale-95"
-            title="Sign Out"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100 text-zinc-600 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer"
           >
-            <span className="material-symbols-outlined text-xl">logout</span>
+            <span className="material-symbols-outlined text-sm">logout</span>
+            <span>Sign Out</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content Area */}
-      <main className="page-container mt-6">
+      {/* ── MAIN WORKSPACE CONTENT ───────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen relative z-10">
         
-        {/* Search Bar Container */}
-        <div className="relative group glass-card rounded-2xl border border-white/[0.05] focus-within:ring-2 focus-within:ring-secondary/40 focus-within:border-secondary/60 transition-all duration-200 mb-6">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40">
-            search
-          </span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search notes indexing..."
-            className="w-full h-14 pl-12 pr-6 bg-transparent border-none font-body text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-0"
-          />
-        </div>
+        {/* Top Header Navigation */}
+        <header className="sticky top-0 right-0 z-30 bg-white/80 backdrop-blur-md border-b border-zinc-250/70 h-14 flex items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-zinc-800 transition-colors duration-150 cursor-pointer border-none"
+              title="Toggle sidebar"
+            >
+              <span className="material-symbols-outlined text-xl">menu</span>
+            </button>
 
-        {/* Section Title */}
-        <div className="flex items-center justify-between mb-4">
+            {/* Breadcrumb path */}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
+              <span className="text-zinc-400">Workspace</span>
+              <span className="text-zinc-300 text-sm">/</span>
+              <span className="text-zinc-700 font-semibold">All Notes</span>
+            </div>
+          </div>
+
+          {/* Quick Action Buttons */}
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-              folder_open
-            </span>
-            <span className="section-label">All Secured Notes ({filteredNotes.length})</span>
-          </div>
-        </div>
-
-        {/* Notes Grid Feed */}
-        {loadingNotes ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="animate-pulse glass-card border border-white/[0.05] rounded-xl p-5 h-24" />
-            ))}
-          </div>
-        ) : !smartAccountAddress ? (
-          /* Generate Secure Keyset or Session Sync required */
-          hasEmbeddedWallet ? (
-            /* Sync Session Fallback */
-            <div className="glass-card rounded-2xl border border-white/[0.05] p-10 text-center flex flex-col items-center justify-center space-y-6 mt-8 animate-reveal">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                <span className="material-symbols-outlined text-3xl">sync_problem</span>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-headline font-bold text-on-surface text-lg">Account Sync Required</h3>
-                <p className="font-body text-xs text-on-surface-variant max-w-[320px] mx-auto leading-relaxed">
-                  We detected a secure wallet linked to your profile, but the active session needs to be synced. This usually occurs after switching from sandbox/mock environment to live network.
-                </p>
-              </div>
-              <button
-                onClick={onLogout}
-                className="px-8 py-3.5 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-sm">logout</span>
-                <span>Sync & Refresh Session</span>
-              </button>
-            </div>
-          ) : (
-            /* Create Embedded Wallet */
-            <div className="glass-card rounded-2xl border border-white/[0.05] p-10 text-center flex flex-col items-center justify-center space-y-6 mt-8 animate-reveal">
-              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-3xl">key</span>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-headline font-bold text-on-surface text-lg">Generate Secure Blockchain Keyset</h3>
-                <p className="font-body text-xs text-on-surface-variant max-w-[320px] mx-auto leading-relaxed">
-                  To store notes securely on-chain and perform gasless, sponsored actions, we need to generate a secure cryptographic keyset for your account. This takes 1-click and is 100% gasless.
-                </p>
-              </div>
-              <button
-                onClick={onCreateWallet}
-                disabled={isCreatingWallet}
-                className="px-8 py-3.5 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCreatingWallet ? (
-                  <>
-                    <div className="w-4 h-4 rounded-full border-2 border-on-primary-fixed/20 border-t-on-primary-fixed animate-spin" />
-                    <span>Generating Keys...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm">vpn_key</span>
-                    <span>Generate Secure Keys</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )
-        ) : filteredNotes.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 animate-reveal">
-            {filteredNotes.map((note, index) => {
-              const noteDate = new Date(note.timestamp || Date.now());
-              const formattedDate = noteDate.toLocaleDateString(undefined, { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-              });
-
-              return (
-                <div 
-                  key={note.cid || index}
-                  onClick={() => onSelectNote(note)}
-                  className="glass-card rounded-xl p-5 border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.12] active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col justify-between h-[120px] group"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-headline font-bold text-on-surface text-base group-hover:text-primary transition-colors duration-150 line-clamp-1">
-                        {note.title}
-                      </h4>
-                      <p className="font-body text-xs text-on-surface-variant line-clamp-1 mt-1">
-                        {note.content || "Empty content"}
-                      </p>
-                    </div>
-                    {note.imageUrl && (
-                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-white/10 ml-3">
-                        <img src={note.imageUrl} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center justify-between border-t border-white/[0.04] pt-2 mt-2">
-                    <span className="font-label text-[10px] text-on-surface-variant/40 tracking-wider">
-                      {formattedDate}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[10px] text-outline">
-                        public
-                      </span>
-                      <span className="font-label text-[10px] text-on-surface-variant/40 tracking-widest uppercase">
-                        IPFS
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          /* Premium Empty State */
-          <div className="glass-card rounded-2xl border border-white/[0.05] p-12 text-center flex flex-col items-center justify-center space-y-6 mt-8 animate-reveal">
-            <div className="w-16 h-16 rounded-full bg-white/5 border border-outline-variant/15 flex items-center justify-center text-on-surface-variant">
-              <span className="material-symbols-outlined text-3xl">edit_document</span>
-            </div>
-            <div>
-              <h3 className="font-headline font-bold text-on-surface text-lg">No notes found</h3>
-              <p className="font-body text-xs text-on-surface-variant max-w-[240px] mx-auto mt-2">
-                {searchQuery 
-                  ? "No notes matched your search query. Try adjusting your keywords." 
-                  : "Start creating your first secure decentralized note stored on IPFS blockchain."
-                }
-              </p>
-            </div>
-            {!searchQuery && (
-              <button
+            {smartAccountAddress && (
+              <button 
                 onClick={onCreateNew}
-                className="px-6 py-3 rounded-full font-headline font-bold text-xs text-on-primary-fixed signature-gradient shadow-primary hover:opacity-90 active:scale-95 transition-all duration-200 border-none cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-850 text-white rounded-lg text-xs font-semibold transition-all duration-150 border-none cursor-pointer shadow-xs hover:shadow"
               >
-                Create First Note
+                <span className="material-symbols-outlined text-base">add</span>
+                <span className="hidden sm:inline">New Page</span>
               </button>
             )}
           </div>
-        )}
-      </main>
+        </header>
 
-      {/* Floating Action Button (FAB) */}
-      {smartAccountAddress && (
-        <button
-          onClick={onCreateNew}
-          className="fixed bottom-8 right-6 w-14 h-14 rounded-full signature-gradient shadow-primary flex items-center justify-center text-on-primary-fixed border-none cursor-pointer hover:opacity-90 active:scale-90 transition-all duration-200 z-30"
-          title="Create Note"
-        >
-          <span className="material-symbols-outlined text-2xl font-bold">add</span>
-        </button>
-      )}
+        {/* Scrollable Page Body */}
+        <main className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-6 py-8 md:py-12">
+          
+          {/* Main Title & Search */}
+          <div className="mb-8 space-y-4 animate-reveal stagger-1">
+            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 flex items-center gap-2">
+              <span className="material-symbols-outlined text-2xl text-zinc-450" style={{ fontVariationSettings: "'wght' 300" }}>folder_open</span>
+              <span>All Secured Notes</span>
+            </h1>
+            
+            {/* Elegant Borderless Search bar */}
+            <div className="relative flex items-center bg-white border border-zinc-200/90 rounded-lg focus-within:border-zinc-300 focus-within:ring-1 focus-within:ring-zinc-300 transition-all duration-150 shadow-2xs">
+              <span className="material-symbols-outlined absolute left-3.5 text-zinc-400 text-lg">
+                search
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search notes securely indexing on IPFS..."
+                className="w-full h-10 pl-10 pr-4 bg-transparent border-none text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-0"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3.5 hover:bg-zinc-100 p-0.5 rounded text-zinc-450 border-none cursor-pointer flex items-center"
+                >
+                  <span className="material-symbols-outlined text-xs">close</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          {loadingNotes ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="animate-pulse bg-white border border-zinc-200 rounded-lg p-5 h-32 flex flex-col justify-between shadow-2xs" />
+              ))}
+            </div>
+          ) : !smartAccountAddress ? (
+            /* Keyset status handler */
+            hasEmbeddedWallet ? (
+              /* Sync Session Banner */
+              <div className="bg-white border border-zinc-200 rounded-xl p-8 text-center flex flex-col items-center justify-center space-y-5 animate-pop-in max-w-md mx-auto shadow-sm">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 shadow-2xs">
+                  <span className="material-symbols-outlined text-2xl">sync_problem</span>
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-bold text-zinc-850 text-base">Identity Sync Pending</h3>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    We detected a secure wallet connected, but the active browser session requires syncing. Re-authenticating is required to verify identity state.
+                  </p>
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="px-5 py-2.5 rounded-lg font-bold text-xs text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 shadow-2xs active:scale-[0.98] transition-all duration-150 border-none cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">logout</span>
+                  <span>Sync Session</span>
+                </button>
+              </div>
+            ) : (
+              /* Generate Secure Blockchain Keyset */
+              <div className="bg-white border border-zinc-200 rounded-xl p-8 text-center flex flex-col items-center justify-center space-y-5 animate-pop-in max-w-md mx-auto shadow-sm">
+                <div className="w-12 h-12 rounded-xl bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-700 shadow-2xs">
+                  <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'wght' 300" }}>key</span>
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-bold text-zinc-900 text-base">Generate Blockchain Key</h3>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    To write secure notes and authorize decentralized uploads, a deterministic smart keyset is required. This setup is fully gasless and automated.
+                  </p>
+                </div>
+                <button
+                  onClick={onCreateWallet}
+                  disabled={isCreatingWallet}
+                  className="px-5 py-2.5 rounded-lg font-bold text-xs text-white bg-zinc-900 hover:bg-zinc-800 shadow-2xs active:scale-[0.98] transition-all duration-150 border-none cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingWallet ? (
+                    <>
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                      <span>Generating secure keys...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-sm">vpn_key</span>
+                      <span>Generate Keys</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )
+          ) : filteredNotes.length > 0 ? (
+            /* Notes Grid Feed */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-reveal stagger-2">
+              {filteredNotes.map((note, index) => {
+                const noteDate = new Date(note.timestamp || Date.now());
+                const formattedDate = noteDate.toLocaleDateString(undefined, { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                });
+
+                return (
+                  <div 
+                    key={note.cid || index}
+                    onClick={() => onSelectNote(note)}
+                    className="notion-card-interactive bg-white border border-zinc-200/90 rounded-lg p-5 flex flex-col justify-between h-[135px] shadow-2xs hover:shadow-xs group hover:border-zinc-300 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-zinc-850 text-sm group-hover:text-zinc-950 transition-colors duration-150 line-clamp-1">
+                          {note.title || "Untitled Note"}
+                        </h4>
+                        <p className="text-xs text-zinc-500 line-clamp-2 mt-1 leading-normal">
+                          {note.content || "No content provided."}
+                        </p>
+                      </div>
+                      {note.imageUrl && (
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-zinc-150 ml-3 bg-zinc-50 group-hover:opacity-95 transition-opacity">
+                          <img src={note.imageUrl} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between border-t border-zinc-100 pt-2.5 mt-2">
+                      <span className="text-[10px] text-zinc-400 font-semibold font-mono tracking-wide">
+                        {formattedDate}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[10px] text-zinc-400">
+                          cloud_queue
+                        </span>
+                        <span className="text-[9px] text-zinc-400 font-extrabold tracking-widest font-mono uppercase">
+                          IPFS
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Premium Empty State */
+            <div className="bg-white border border-zinc-200 rounded-xl p-10 text-center flex flex-col items-center justify-center space-y-5 animate-pop-in max-w-sm mx-auto shadow-2xs">
+              <div className="w-12 h-12 rounded-xl bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-450 shadow-2xs">
+                <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'wght' 300" }}>edit_document</span>
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-zinc-900 text-base">No pages found</h3>
+                <p className="text-xs text-zinc-500 leading-relaxed max-w-[240px] mx-auto">
+                  {searchQuery 
+                    ? "Adjust your search terms to locate cached block indexes." 
+                    : "Create your first decentralized card. It will be secured and saved permanently."
+                  }
+                </p>
+              </div>
+              {!searchQuery && (
+                <button
+                  onClick={onCreateNew}
+                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-bold shadow-2xs active:scale-[0.98] transition-all duration-150 border-none cursor-pointer"
+                >
+                  Create First Note
+                </button>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

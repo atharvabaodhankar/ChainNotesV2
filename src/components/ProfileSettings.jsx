@@ -26,138 +26,148 @@ export default function ProfileSettings({
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col justify-between overflow-x-hidden relative animate-reveal">
-      {/* Background Ambient Blobs */}
-      <div className="fixed -top-12 -left-12 w-80 h-80 bg-secondary/5 rounded-full blur-[100px] pointer-events-none -z-10 animate-pulse" />
-      <div className="fixed bottom-[-10%] -right-12 w-[350px] h-[350px] bg-primary/5 rounded-full blur-[90px] pointer-events-none -z-10 animate-pulse" />
-
-      {/* Header */}
-      <header className="sticky top-0 left-0 right-0 z-40 bg-surface/50 backdrop-blur-xl border-b border-white/[0.05] py-4">
-        <div className="max-w-lg mx-auto w-full px-6 flex items-center justify-between">
+    <div className="min-h-screen bg-[#fafafa] flex flex-col justify-between overflow-x-hidden relative animate-reveal text-zinc-800 font-sans">
+      
+      {/* ── TOP HEADER NAVIGATION ───────────────────────────── */}
+      <header className="sticky top-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-md border-b border-zinc-200/80 h-14 flex items-center">
+        <div className="max-w-xl mx-auto w-full px-6 flex items-center justify-between">
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface transition-all duration-200 cursor-pointer active:scale-95"
+            className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-zinc-800 transition-colors duration-150 cursor-pointer border-none"
+            title="Go back"
           >
             <span className="material-symbols-outlined text-xl">arrow_back</span>
           </button>
 
-          <h3 className="font-headline font-bold text-on-surface text-base">
-            Web3 Identity Details
-          </h3>
+          <span className="text-xs text-zinc-400 font-semibold uppercase tracking-wider font-mono">
+            Settings / Web3 Identity
+          </span>
 
-          <div className="w-10 h-10" /> {/* Spacer */}
+          <div className="w-8 h-8" /> {/* Spacer */}
         </div>
       </header>
 
-      {/* Main Settings Panel */}
-      <main className="flex-1 page-container mt-6 px-6 space-y-6">
+      {/* ── MAIN CONFIGURATION PANEL ───────────────────────── */}
+      <main className="flex-1 w-full max-w-xl mx-auto px-6 py-8 space-y-6">
         
-        {/* Identity Title Card */}
-        <div className="glass-card rounded-2xl p-6 border border-white/[0.05] text-center flex flex-col items-center justify-center space-y-4">
-          <div className="w-16 h-16 rounded-full signature-gradient flex items-center justify-center font-headline font-bold text-on-primary-fixed shadow-primary text-xl">
-            {smartAccountAddress ? smartAccountAddress.substring(2, 5).toUpperCase() : "AA"}
+        {/* Page Title */}
+        <div className="space-y-1.5 animate-reveal stagger-1">
+          <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900">
+            Identity Settings
+          </h1>
+          <p className="text-xs text-zinc-500 leading-normal">
+            View active signer keys, smart contract wallets, and network statuses assigned to this space.
+          </p>
+        </div>
+
+        {/* Identity Overview Card */}
+        <div className="bg-white border border-zinc-200 rounded-xl p-5 flex items-center gap-4 shadow-2xs hover:border-zinc-300 transition-colors duration-150 animate-reveal stagger-2">
+          <div className="w-12 h-12 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-bold text-base shadow-sm">
+            {smartAccountAddress ? smartAccountAddress.substring(2, 4).toUpperCase() : "AA"}
           </div>
-          <div>
-            <h4 className="font-headline font-bold text-on-surface text-lg flex items-center justify-center gap-2">
-              <span>Decentralized Identity</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isMock ? 'bg-amber-500/10 border border-amber-500/20 text-amber-500' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500'}`}>
-                {isMock ? 'Sandbox' : 'Polygon Amoy'}
+          <div className="min-w-0 flex-1">
+            <h4 className="font-bold text-zinc-850 text-sm flex items-center gap-2">
+              <span>Decentralized Space</span>
+              <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold tracking-widest ${
+                isMock ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-emerald-100 text-emerald-600 border border-emerald-200'
+              }`}>
+                {isMock ? 'Sandbox' : 'Amoy Network'}
               </span>
             </h4>
-            <p className="font-body text-xs text-on-surface-variant mt-1">
+            <p className="text-xs text-zinc-400 leading-normal mt-0.5">
               {isMock 
-                ? "Your identity is locally simulated in Dev Sandbox because no active wallet provider was detected."
-                : "Your assets and notes are secured on-chain using deterministic Account Abstraction."}
+                ? "Operating in local simulation mode (Dev Sandbox). Standard paymaster actions are skipped."
+                : "Identity and note indexes are secured natively using Polygon account abstraction."}
             </p>
           </div>
         </div>
 
-        {/* EOA Privy Signer Address Details */}
-        <div className="glass-card rounded-xl p-5 border border-white/[0.05] space-y-3">
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-primary text-sm">key</span>
-            <span className="section-label">EOA Privy Signer</span>
+        {/* Privy Signer EOA Settings Card */}
+        <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-3.5 shadow-2xs hover:border-zinc-300 transition-colors duration-150 animate-reveal stagger-3">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-zinc-450 text-base" style={{ fontVariationSettings: "'wght' 300" }}>key</span>
+            <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest">EOA Signer Key</span>
           </div>
 
-          <p className="font-body text-xs text-on-surface-variant leading-relaxed">
-            This is your social login embedded signer key generated by Privy. It acts as the owner and signer of your smart account.
+          <p className="text-xs text-zinc-500 leading-relaxed">
+            This embedded signer key was generated securely by Privy via your social account. It holds the signing authority for your decentralized smart account.
           </p>
 
-          <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/[0.03]">
-            <span className="font-mono text-xs text-on-surface truncate flex-1 select-all">
+          <div className="flex items-center gap-3 bg-zinc-50 rounded-lg p-3 border border-zinc-200/80">
+            <span className="font-mono text-xs text-zinc-700 truncate flex-1 select-all">
               {userAddress || "0x..."}
             </span>
             <button
               onClick={() => copyToClipboard(userAddress, 'eoa')}
-              className="p-2 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-primary transition-all duration-150 cursor-pointer active:scale-90 border-none"
+              className="p-1.5 hover:bg-zinc-200/60 text-zinc-450 hover:text-zinc-850 rounded transition-colors duration-150 border-none cursor-pointer"
+              title="Copy to clipboard"
             >
-              <span className="material-symbols-outlined text-sm">
+              <span className="material-symbols-outlined text-xs">
                 {copiedEOA ? "check" : "content_copy"}
               </span>
             </button>
           </div>
         </div>
 
-        {/* Smart Account AA Address Details */}
-        <div className="glass-card rounded-xl p-5 border border-white/[0.05] space-y-3">
+        {/* ERC-4337 Smart Account Settings Card */}
+        <div className="bg-white border border-zinc-200 rounded-xl p-5 space-y-3.5 shadow-2xs hover:border-zinc-300 transition-colors duration-150 animate-reveal stagger-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-secondary text-sm">shield</span>
-              <span className="section-label">Deterministic Smart Account</span>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-zinc-450 text-base" style={{ fontVariationSettings: "'wght' 300" }}>shield</span>
+              <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest">Smart Contract Address</span>
             </div>
-            <span className="px-2.5 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[9px] font-bold rounded-full uppercase tracking-wider">
+            <span className="px-1.5 py-0.5 bg-zinc-100 border border-zinc-200 text-zinc-500 text-[8px] font-bold rounded uppercase tracking-widest">
               ERC-4337
             </span>
           </div>
 
-          <p className="font-body text-xs text-on-surface-variant leading-relaxed">
-            This is your smart account address where notes are anchored. This remains the exact same across all Google or Email logins.
+          <p className="text-xs text-zinc-500 leading-relaxed">
+            This deterministic address anchors your notes. It is resolved dynamically on-chain and remains static across devices.
           </p>
 
-          <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/[0.03]">
-            <span className="font-mono text-xs text-on-surface truncate flex-1 select-all font-semibold">
+          <div className="flex items-center gap-3 bg-zinc-50 rounded-lg p-3 border border-zinc-200/80">
+            <span className="font-mono text-xs text-zinc-700 truncate flex-1 select-all font-semibold">
               {smartAccountAddress || "0x..."}
             </span>
             <button
               onClick={() => copyToClipboard(smartAccountAddress, 'aa')}
-              className="p-2 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-primary transition-all duration-150 cursor-pointer active:scale-90 border-none"
+              className="p-1.5 hover:bg-zinc-200/60 text-zinc-450 hover:text-zinc-850 rounded transition-colors duration-150 border-none cursor-pointer"
+              title="Copy to clipboard"
             >
-              <span className="material-symbols-outlined text-sm">
+              <span className="material-symbols-outlined text-xs">
                 {copiedAA ? "check" : "content_copy"}
               </span>
             </button>
           </div>
 
-          {/* Action Links */}
-          <div className="pt-2 space-y-2.5">
+          {/* Verification Explorer Actions */}
+          <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <a
               href={getExplorerLink(smartAccountAddress)}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 font-headline font-bold text-xs text-on-surface transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
+              className="flex items-center justify-center gap-1.5 py-2 px-3 border border-zinc-200 hover:bg-zinc-50 font-bold text-xs text-zinc-700 rounded-lg transition-colors duration-150 cursor-pointer shadow-2xs hover:border-zinc-300"
             >
-              <span className="material-symbols-outlined text-sm">open_in_new</span>
-              <span>View on PolygonScan (Explorer)</span>
+              <span className="material-symbols-outlined text-xs">open_in_new</span>
+              <span>Verify on PolygonScan</span>
             </a>
             
             <a
               href={`https://jiffyscan.xyz/address/${smartAccountAddress}?network=amoy`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-1.5 py-3 w-full rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 font-headline font-bold text-xs text-primary transition-all duration-200 cursor-pointer select-none active:scale-[0.98]"
+              className="flex items-center justify-center gap-1.5 py-2 px-3 border border-zinc-200 hover:bg-zinc-50 font-bold text-xs text-zinc-700 rounded-lg transition-colors duration-150 cursor-pointer shadow-2xs hover:border-zinc-300"
             >
-              <span className="material-symbols-outlined text-sm">explore</span>
-              <span>View UserOperations on JiffyScan</span>
+              <span className="material-symbols-outlined text-xs">explore</span>
+              <span>Lookup UserOperations</span>
             </a>
           </div>
         </div>
       </main>
 
-      {/* Footer Info */}
-      <footer className="page-container py-8 text-center mt-auto">
-        <p className="font-label text-[10px] text-on-surface-variant/30 tracking-wider">
-          ChainNotes v2.0.0 · Polygon Testnet Amoy · Pimlico paymaster
-        </p>
+      {/* ── FOOTER NETWORK FLAGS ────────────────────────────── */}
+      <footer className="w-full max-w-xl mx-auto py-8 text-center text-[10px] text-zinc-400 font-semibold tracking-wider uppercase font-mono mt-auto">
+        ChainNotes v2 · Polygon Amoy Testnet · Pimlico paymaster
       </footer>
     </div>
   );

@@ -1,190 +1,199 @@
 /* ─── index.css ─────────────────────────────────────────────────────────── */
 
-/* 1. Fonts (Must precede @import "tailwindcss" in v4) */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+/* 1. Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 /* 2. Import Tailwind v4 */
 @import "tailwindcss";
 
-/* 3. Source paths — tells v4 which files to scan for class names */
+/* 3. Source paths */
 @source "../src/**/*.{js,jsx,ts,tsx,html}";
 
-/* 4. Dark mode variant */
+/* 4. Custom variant */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* 5. Design tokens — everything in one @theme block */
+/* 5. Design tokens — Light, Minimalist Notion Palette */
 @theme {
-
   /* ── Fonts ─────────────────────────────────────────── */
-  --font-headline: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-headline: "Inter", system-ui, sans-serif;
   --font-body:     "Inter", system-ui, sans-serif;
   --font-label:    "Inter", system-ui, sans-serif;
 
-  /* ── Border Radius ─────────────────────────────────── */
-  --radius-sm:   0.5rem;
-  --radius:      1rem;
-  --radius-lg:   2rem;
-  --radius-xl:   3rem;
+  /* ── Border Radius (Notion-like Square Rounded) ──────── */
+  --radius-sm:   0.25rem;
+  --radius:      0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
   --radius-full: 9999px;
 
   /* ── Shadows ───────────────────────────────────────── */
-  --shadow-primary:   0 12px 24px rgba(255,141,138,0.25);
-  --shadow-secondary: 0 10px 20px rgba(168,140,251,0.20);
-  --shadow-tertiary:  0 10px 20px rgba(255,121,75,0.20);
-  --shadow-error:     0 0 40px rgba(213,61,24,0.40);
-  --shadow-sos:       0 0 50px rgba(255,141,138,0.40);
+  --shadow-primary:   0 1px 2px rgba(0,0,0,0.05), 0 4px 12px rgba(79,70,229,0.05);
+  --shadow-secondary: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-elevated:  0 10px 30px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
 
   /* ── Keyframes & Animations ────────────────────────── */
-  --animate-float:   float 3s ease-in-out infinite;
-  --animate-reveal:  fadeSlideUp 400ms ease-out forwards;
-  --animate-fade-in: fadeIn 300ms ease-out forwards;
+  --animate-float:   float 4s ease-in-out infinite;
+  --animate-reveal:  fadeSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in: fadeIn 200ms ease-out forwards;
 
-  /* ── Neutral Surfaces ──────────────────────────────── */
-  --color-surface-dim:               #0e0e13;
-  --color-surface:                   #0e0e13;
-  --color-surface-container-low:     #131319;
-  --color-surface-container:         #19191f;
-  --color-surface-container-high:    #1f1f26;
-  --color-surface-container-highest: #25252d;
-  --color-surface-bright:            #2c2b33;
-  --color-background:                #0e0e13;
-  --color-on-surface:                #f9f5fd;
-  --color-on-background:             #f9f5fd;
-  --color-on-surface-variant:        #acaab1;
-  --color-outline:                   #76747b;
-  --color-outline-variant:           #48474d;
+  /* ── Neutral Surfaces (Notion Light Mode) ────────── */
+  --color-surface-dim:               #f7f7f8; /* Sidebar grey */
+  --color-surface:                   #ffffff; /* Main content white */
+  --color-surface-container-low:     #fafafa; 
+  --color-surface-container:         #f4f4f5; /* Zinc 100 */
+  --color-surface-container-high:    #e4e4e7; /* Zinc 200 */
+  --color-surface-bright:            #ffffff; 
+  --color-background:                #fafafa; /* Clean off-white background */
+  --color-on-surface:                #18181b; /* Charcoal zinc-900 */
+  --color-on-background:             #18181b; 
+  --color-on-surface-variant:        #52525b; /* Slate/Zinc-600 */
+  --color-outline:                   #e4e4e7; /* Clean borders */
+  --color-outline-variant:           #f4f4f5; 
 
-  /* ── Primary ───────────────────────────────────────── */
-  --color-primary:                   #ff8d8a;
-  --color-primary-dim:               #ff706f;
-  --color-primary-fixed:             #ff7574;
-  --color-primary-fixed-dim:         #f56364;
-  --color-primary-container:         #ff7574;
-  --color-on-primary:                #64000e;
-  --color-on-primary-fixed:          #000000;
-  --color-on-primary-container:      #4e0009;
-  --color-on-primary-fixed-variant:  #60000d;
-  --color-surface-tint:              #ff8d8a;
+  /* ── Primary (Notion Slate/Graphite) ───────────────── */
+  --color-primary:                   #18181b;
+  --color-primary-dim:               #27272a;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #f4f4f5;
+  --color-on-primary-container:      #18181b;
+  
+  /* ── Secondary (Notion Blue/Indigo) ────────────────── */
+  --color-secondary:                  #4f46e5;
+  --color-secondary-dim:              #4338ca;
+  --color-secondary-container:        #e0e7ff;
+  --color-on-secondary:               #ffffff;
+  --color-on-secondary-container:     #312e81;
 
-  /* ── Secondary ─────────────────────────────────────── */
-  --color-secondary:                  #a88cfb;
-  --color-secondary-dim:              #a88cfb;
-  --color-secondary-fixed:            #d8caff;
-  --color-secondary-fixed-dim:        #ccbaff;
-  --color-secondary-container:        #4f319c;
-  --color-on-secondary:               #260069;
-  --color-on-secondary-fixed:         #3c1989;
-  --color-on-secondary-container:     #d7c8ff;
-  --color-on-secondary-fixed-variant: #593ca6;
-
-  /* ── Tertiary ──────────────────────────────────────── */
-  --color-tertiary:                   #ff794b;
-  --color-tertiary-dim:               #ff7344;
-  --color-tertiary-fixed:             #ff9471;
-  --color-tertiary-fixed-dim:         #ff7d52;
-  --color-tertiary-container:         #fa622c;
-  --color-on-tertiary:                #461000;
-  --color-on-tertiary-fixed:          #330900;
-  --color-on-tertiary-container:      #2b0700;
-  --color-on-tertiary-fixed-variant:  #6d1d00;
-
+  /* ── Tertiary (Notion Amber/Gold) ─────────────────── */
+  --color-tertiary:                   #b45309;
+  --color-tertiary-container:         #fef3c7;
+  --color-on-tertiary:                #ffffff;
+  
   /* ── Error ─────────────────────────────────────────── */
-  --color-error:                      #ff7351;
-  --color-error-dim:                  #d53d18;
-  --color-error-container:            #b92902;
-  --color-on-error:                   #450900;
-  --color-on-error-container:         #ffd2c8;
-
-  /* ── Inverse ───────────────────────────────────────── */
-  --color-inverse-surface:            #fcf8ff;
-  --color-inverse-on-surface:         #55545b;
-  --color-inverse-primary:            #ae3035;
+  --color-error:                      #dc2626;
+  --color-on-error:                   #ffffff;
 }
 
-/* 6. Keyframe definitions */
+/* 6. Keyframes */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-8px); }
+  50%       { transform: translateY(-4px); }
 }
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes popIn {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.stagger-1 { animation-delay: 50ms !important; }
+.stagger-2 { animation-delay: 100ms !important; }
+.stagger-3 { animation-delay: 150ms !important; }
+.stagger-4 { animation-delay: 200ms !important; }
+.stagger-5 { animation-delay: 250ms !important; }
+
+.animate-pop-in {
+  animation: popIn 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 
 /* 7. Plugin */
 @plugin "@tailwindcss/forms";
 
-/* 8. Base layer — global resets */
+/* 8. Base resets */
 @layer base {
   * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     box-sizing: border-box;
   }
-  html { background-color: #0e0e13; }
+  html { background-color: #fafafa; }
   body {
     font-family: var(--font-body);
-    color: #f9f5fd;
+    color: #18181b;
     min-height: 100dvh;
     margin: 0;
+    background-color: #fafafa;
   }
   #root {
     width: 100%;
     min-height: 100dvh;
   }
   ::selection {
-    background: rgba(255, 141, 138, 0.3);
-    color: #f9f5fd;
+    background: rgba(79, 70, 229, 0.15);
+    color: #18181b;
   }
-  ::-webkit-scrollbar { width: 0; }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d4d4d8;
+  }
   .material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 20;
   }
 }
 
-/* 9. Component layer — reusable class utilities */
+/* 9. Reusable Notion Components */
 @layer components {
-  .glass-card {
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .notion-card, .notion-card-interactive {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    border-radius: 6px;
   }
-  .glass-subtle {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+  .notion-card-interactive {
+    @apply cursor-pointer hover:bg-[#fafafa] hover:border-zinc-300
+           active:scale-[0.99] transition-all duration-150;
   }
-  .glass-elevated {
-    background: rgba(255, 255, 255, 0.09);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  .notion-sidebar {
+    background: #f7f7f8;
+    border-right: 1px solid #e4e4e7;
   }
-  .signature-gradient {
-    background: linear-gradient(135deg, #ff8d8a 0%, #ff794b 100%);
-  }
-  .lavender-gradient {
-    background: linear-gradient(135deg, #a88cfb 0%, #d8caff 100%);
+  .notion-input {
+    @apply w-full px-3 py-2 text-sm bg-white border border-zinc-200 rounded-md
+           placeholder:text-zinc-400 focus:outline-none focus:border-zinc-400
+           focus:ring-1 focus:ring-zinc-400 transition-all duration-150;
   }
   .btn-primary {
-    @apply w-full py-5 rounded-full font-headline font-bold text-lg
-           text-on-primary-fixed bg-gradient-to-br from-primary to-tertiary
-           shadow-primary active:scale-95 hover:opacity-90
-           transition-all duration-200 border-none cursor-pointer;
+    @apply px-4 py-2 text-sm font-semibold rounded-md text-white bg-zinc-900
+           hover:bg-zinc-800 active:scale-[0.98] transition-all duration-150 border-none cursor-pointer;
+  }
+  .btn-secondary {
+    @apply px-4 py-2 text-sm font-semibold rounded-md text-zinc-700 bg-white border border-zinc-200
+           hover:bg-zinc-50 active:scale-[0.98] transition-all duration-150 cursor-pointer;
+  }
+  .btn-accent {
+    @apply px-4 py-2 text-sm font-semibold rounded-md text-white bg-indigo-600
+           hover:bg-indigo-500 active:scale-[0.98] transition-all duration-150 border-none cursor-pointer;
   }
   .section-label {
-    @apply font-label text-[10px] font-extrabold tracking-[0.2em]
-           text-on-surface-variant uppercase;
+    @apply font-label text-[11px] font-bold tracking-wider text-zinc-400 uppercase;
   }
   .page-container {
-    @apply max-w-lg mx-auto w-full px-6;
+    @apply max-w-5xl mx-auto w-full px-8 py-8;
   }
 }
